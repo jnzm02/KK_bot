@@ -21,11 +21,6 @@ def show_list(my_list):
     return the_list
 
 
-def show():
-    for juz_number, is_free in free_juz_dict.items():
-        print(juz_number, is_free[0])
-
-
 def show_all():
     my_list = []
     for juz_number, is_free in free_juz_dict.items():
@@ -34,7 +29,7 @@ def show_all():
         else:
             my_list.append(str(juz_number))
 
-        return show_list(my_list)
+    return show_list(my_list)
 
 
 def free_juz_list():
@@ -42,10 +37,8 @@ def free_juz_list():
     for juz_number, is_free in free_juz_dict.items():
         if len(is_free[0]) == 0:
             if is_free[1]:
-                print("YES")
                 my_list.append(str(str(juz_number)+'done'))
             else:
-                print("NO")
                 my_list.append(str(juz_number))
 
     return show_list(my_list)

@@ -4,12 +4,13 @@ import telebot
 from decouple import config
 
 # local
-import free_juz
+import juz
 import tools
 
 API_KEY = config('API_KEY')
 
 bot = telebot.TeleBot(API_KEY)
+
 
 # deadline = date
 
@@ -21,25 +22,24 @@ def start_command(message):
 
 @bot.message_handler(commands=['free_juz'])
 def show_free_juz_command(message):
-    free_juz_list = free_juz.free_juz_list()
+    free_juz_list = juz.free_juz_list()
 
     bot.send_message(message.chat.id, "The list of free juz:\n" + free_juz_list)
 
 
 @bot.message_handler(commands=['my_list'])
 def get_my_list_command(message):
-    my_list = free_juz.get_my_list(message.from_user.username)
+    my_list = juz.get_my_list(message.from_user.username)
     if my_list == "":
         message_text = "Your list is empty"
     else:
-        message_text = "Your list:\n"+my_list
+        message_text = "Your list:\n" + my_list
 
     bot.send_message(message.chat.id, message_text)
 
 
 @bot.message_handler(commands=['add'])
 def add_to_mylist(message):
-
     juz_number = tools.extract_arg(message.text)[0]
 
     if not juz_number.isdigit():
@@ -48,11 +48,10 @@ def add_to_mylist(message):
 
     juz_number = int(juz_number)
 
-    if juz_number > 30 or juz_number < 0:
+    if juz_number > 30 or juz_number <= 0:
         bot.send_message(message.chat.id, "No juz found! May be you sent wrong parameters")
         return
 
-    free_juz.show()
     # if juz_number == "":
     #
     #     bot.send_message(message.chat.id, "Which juz you want to read?")
@@ -60,13 +59,12 @@ def add_to_mylist(message):
     #     @bot.message_handler(content_types=['text'])
     #     def assigning_juz_for_user(new_message):
 
-        # TODO: asks which juz user wants to take
-        # TODO: then user sends message which we take as juz_number, then work with this text
-        # bot.send_message(message.chat.id, "YES")
-
+    # TODO: asks which juz user wants to take
+    # TODO: then user sends message which we take as juz_number, then work with this text
+    # bot.send_message(message.chat.id, "YES")
 
     # if free_juz.free_juz_dict[juz_number] is None:
-    free_juz.add_user(juz_number, message.from_user.username)
+    juz.add_user(juz_number, message.from_user.username)
     message_text = "Juz has added to your list\nPlease finish reading till the deadline"
     # else:
     # message_text = "This juz is already taken!"
@@ -76,7 +74,7 @@ def add_to_mylist(message):
 
 @bot.message_handler(commands=['all'])
 def show_all_juz(message):
-    message_text = free_juz.show_all()
+    message_text = juz.show_all()
     bot.send_message(message.chat.id, message_text)
 
 
@@ -87,16 +85,16 @@ def done_reading_juz(message):
         bot.send_message(message.chat.id, "No juz found!")
         return
 
-    if free_juz.check_read(juz_number):
+    if juz.check_read(juz_number):
         bot.send_message(message.chat.id, "This juz is already read!")
         return
 
-    elif not free_juz.check_if_mine(juz_number, message.from_user.username):
+    elif not juz.check_if_mine(juz_number, message.from_user.username):
         bot.send_message(message.chat.id, "This juz is not yours")
         return
 
     else:
-        free_juz.done_reading(juz_number)
+        juz.done_reading(juz_number)
         bot.send_message(message.chat.id, "Congrats keep going! May Allah bless your efforts!")
 
 
