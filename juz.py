@@ -6,17 +6,21 @@ for juz in range(1, 31):
 
 def make_empty():
     for is_free in free_juz_dict.values():
-        is_free[0] = ""
+        is_free = ["", False]
 
 
 def show_list(my_list):
-    first = True
+    # first = True
+    # the_list = ""
+    # for item in my_list:
+    #     if not first:
+    #         the_list += ', '
+    #     the_list += str(item)
+    #     first = False
+
     the_list = ""
     for item in my_list:
-        if not first:
-            the_list += ', '
-        the_list += str(item)
-        first = False
+        the_list += item + '\n'
 
     return the_list
 
@@ -25,9 +29,9 @@ def show_all():
     my_list = []
     for juz_number, is_free in free_juz_dict.items():
         if is_free[1]:
-            my_list.append(str(juz_number)+'✅')
+            my_list.append(str(str(juz_number) + ": " + str(is_free[0]) + '✅'))
         else:
-            my_list.append(str(juz_number))
+            my_list.append(str(str(juz_number) + ": " + str(is_free[0])))
 
     return show_list(my_list)
 
@@ -37,7 +41,7 @@ def free_juz_list():
     for juz_number, is_free in free_juz_dict.items():
         if len(is_free[0]) == 0:
             if is_free[1]:
-                my_list.append(str(str(juz_number)+'done'))
+                my_list.append(str(str(juz_number) + 'done'))
             else:
                 my_list.append(str(juz_number))
 
@@ -49,7 +53,7 @@ def get_my_list(username):
     for juz_number, name in free_juz_dict.items():
         if name[0] == username:
             if name[1]:
-                my_list.append(str(juz_number)+'✅')
+                my_list.append(str(juz_number) + '✅')
             else:
                 my_list.append(str(juz_number))
     return show_list(my_list)
@@ -66,9 +70,17 @@ def check_read(juz_number):
         return False
 
 
-def check_if_mine(juz_number, username):
+def check_mine(juz_number, username):
     return free_juz_dict[juz_number][0] == username
 
 
 def add_user(juz_number, username):
     free_juz_dict[juz_number][0] = str(username)
+
+
+def drop_user(juz_number):
+    free_juz_dict[juz_number] = ["", False]
+
+
+def check_free(juz_number):
+    return free_juz_dict[juz_number][0] == ""
