@@ -1,18 +1,34 @@
 import os
+
+import pytz
 import telebot
 
 from decouple import config
+from apscheduler.schedulers.blocking import BlockingScheduler
+# from apscheduler.schedulers.asyncio import AsyncIOScheduler
 
 # local
 import juz
 import tools
 
+
 API_KEY = config('API_KEY')
+general_chat = config('KK_bot_ideas_chat')
 
 bot = telebot.TeleBot(API_KEY)
 
+deadline = '01.07.2022'
 
-# deadline = date
+
+def send_evening_notification():
+    message_text = "Today's Updates for Quran Hatim: "+str(deadline)+'\n'
+    message_text += juz.show_all()
+    bot.send_message(general_chat, message_text)
+
+
+scheduler = BlockingScheduler(timezone=pytz.timezone('Asia/Almaty'))
+scheduler.add_job(send_evening_notification, trigger='cron', hour=20, minute=0)
+scheduler.start()
 
 
 @bot.message_handler(commands=['start'])
@@ -64,16 +80,7 @@ def add_to_mylist(message):
         bot.send_message(message.chat.id, "This juz is taken by other user!")
         return
 
-    # if juz_number == "":
-    #
-    #     bot.send_message(message.chat.id, "Which juz you want to read?")
-    #
-    #     @bot.message_handler(content_types=['text'])
-    #     def assigning_juz_for_user(new_message):
-
-    # TODO: asks which juz user wants to take
     juz.add_user(juz_number, message.from_user.username)
-
     bot.send_message(message.chat.id, "Juz has added to your list\nPlease finish reading till the deadline")
 
 
