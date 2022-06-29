@@ -1,11 +1,11 @@
-free_juz_dict = {}
+juz_dict = {}
 
 for juz in range(1, 31):
-    free_juz_dict[juz] = ["", False]
+    juz_dict[juz] = ["", False]
 
 
 def make_empty():
-    for is_free in free_juz_dict.values():
+    for is_free in juz_dict.values():
         is_free = ["", False]
 
 
@@ -27,7 +27,7 @@ def show_list(my_list):
 
 def show_all():
     my_list = []
-    for juz_number, is_free in free_juz_dict.items():
+    for juz_number, is_free in juz_dict.items():
         if is_free[1]:
             my_list.append(str(str(juz_number) + ": " + str(is_free[0]) + '✅'))
         else:
@@ -38,7 +38,7 @@ def show_all():
 
 def free_juz_list():
     my_list = []
-    for juz_number, is_free in free_juz_dict.items():
+    for juz_number, is_free in juz_dict.items():
         if len(is_free[0]) == 0:
             if is_free[1]:
                 my_list.append(str(str(juz_number) + 'done'))
@@ -50,7 +50,7 @@ def free_juz_list():
 
 def get_my_list(username):
     my_list = []
-    for juz_number, name in free_juz_dict.items():
+    for juz_number, name in juz_dict.items():
         if name[0] == username:
             if name[1]:
                 my_list.append(str(juz_number) + '✅')
@@ -60,27 +60,27 @@ def get_my_list(username):
 
 
 def done_reading(juz_number):
-    free_juz_dict[juz_number][1] = True
+    juz_dict[juz_number][1] = True
 
 
 def check_read(juz_number):
-    if free_juz_dict[juz_number][1]:
+    if juz_dict[juz_number][1]:
         return True
     else:
         return False
 
 
 def check_mine(juz_number, username):
-    return free_juz_dict[juz_number][0] == username
+    return juz_dict[juz_number][0] == username
 
 
 def add_user(juz_number, username):
-    free_juz_dict[juz_number][0] = str(username)
+    juz_dict[juz_number][0] = str(username)
 
 
 def drop_user(juz_number):
-    free_juz_dict[juz_number] = ["", False]
+    juz_dict[juz_number] = ["", False]
 
 
 def check_free(juz_number):
-    return free_juz_dict[juz_number][0] == ""
+    return juz_dict[juz_number][0] == ""

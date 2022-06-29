@@ -11,9 +11,9 @@ from apscheduler.schedulers.blocking import BlockingScheduler
 import juz
 import tools
 
-
 API_KEY = config('API_KEY')
-general_chat = config('KK_bot_ideas_chat')
+general_chat_id = config('KK_bot_hatym_bot_test_chat')
+SUPER_ADMIN_ID = int(config('SUPER_ADMIN_ID'))
 
 bot = telebot.TeleBot(API_KEY)
 
@@ -21,14 +21,41 @@ deadline = '01.07.2022'
 
 
 def send_evening_notification():
-    message_text = "Today's Updates for Quran Hatim: "+str(deadline)+'\n'
+    message_text = "Today's Updates for Quran Hatim: " + str(deadline) + '\n'
     message_text += juz.show_all()
-    bot.send_message(general_chat, message_text)
+    bot.send_message(general_chat_id, message_text)
 
 
-scheduler = BlockingScheduler(timezone=pytz.timezone('Asia/Almaty'))
-scheduler.add_job(send_evening_notification, trigger='cron', hour=20, minute=0)
-scheduler.start()
+# scheduler = BlockingScheduler(timezone=pytz.timezone('Asia/Almaty'))
+# scheduler.add_job(send_evening_notification, trigger='cron', hour=18, minute=27)
+# scheduler.start()
+
+
+@bot.message_handler(commands=['main_chat'])
+def set_main_chat(message):
+    if not message.from_user.id == SUPER_ADMIN_ID:
+        bot.send_message(message.chat.id, "You are not allowed to call this command")
+        return
+
+    general_chat_id = message.chat.id
+    bot.send_message(message.chat.id, "Successfully set this chat as a general chat!")
+
+
+@bot.message_handler(commands=['check_admin'])
+def check_admin_command(message):
+    if message.from_user.id == SUPER_ADMIN_ID:
+        bot.send_message(message.chat.id, "Yes you are admin")
+    else:
+        bot.send_message(message.chat.id, "No you are not admin")
+
+
+@bot.message_handler(commands=['check_chat'])
+def check_chat_command(message):
+    if not message.from_user.id != SUPER_ADMIN_ID:
+        bot.send_message(message.chat.id, "You are not allowed to call this command")
+        return
+
+    bot.send_message(general_chat_id, "This is the general chat")
 
 
 @bot.message_handler(commands=['start'])
@@ -56,16 +83,24 @@ def get_my_list_command(message):
 
 @bot.message_handler(commands=['add'])
 def add_to_mylist(message):
-    juz_number = tools.extract_arg(message.text)[0]
+    data = tools.extract_arg(message.text)
+
+    if not tools.check_has_arg(data):
+        bot.send_message(message.chat.id, "Can not add an empty argument. Please enter a number between [1, 30]")
+        return
+
+    juz_number = data[0]
 
     if not juz_number.isdigit():
-        bot.send_message(message.chat.id, "Please write a number, you sent wrong parameters")
+        bot.send_message(message.chat.id, "Please write a number, you sent wrong parameters. Please enter a number "
+                                          "between [1, 30]")
         return
 
     juz_number = int(juz_number)
 
     if juz_number > 30 or juz_number <= 0:
-        bot.send_message(message.chat.id, "No juz found! May be you sent wrong parameters")
+        bot.send_message(message.chat.id, "No juz found! May be you sent wrong parameters. Please enter a number "
+                                          "between [1, 30]")
         return
 
     if juz.check_read(juz_number):
@@ -101,7 +136,7 @@ def done_reading_juz(message):
         bot.send_message(message.chat.id, "This juz is already read!")
         return
 
-    elif not juz.check_mine(juz_number, message.from_user.username):
+    if not juz.check_mine(juz_number, message.from_user.username):
         bot.send_message(message.chat.id, "This juz is not yours")
         return
 
@@ -127,6 +162,9 @@ def drop_user(message):
         return
 
     juz.drop_user(juz_number)
+
+    message_text_for_admin = str(message.from_user.username) + ' has dropped ' + str(juz_number) + ' juz '
+    bot.send_message(SUPER_ADMIN_ID, message_text_for_admin)
     bot.send_message(message.chat.id, "Successfully dropped the juz")
 
 
