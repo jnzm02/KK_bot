@@ -86,21 +86,22 @@ def add_to_mylist(message):
     data = tools.extract_arg(message.text)
 
     if not tools.check_has_arg(data):
-        bot.send_message(message.chat.id, "Can not add an empty argument. Please enter a number between [1, 30]")
+        bot.send_message(message.chat.id, "Can not add an empty argument. Please enter a number "
+                                          "between [1, 30] after command")
         return
 
     juz_number = data[0]
 
     if not juz_number.isdigit():
         bot.send_message(message.chat.id, "Please write a number, you sent wrong parameters. Please enter a number "
-                                          "between [1, 30]")
+                                          "between [1, 30] after command")
         return
 
     juz_number = int(juz_number)
 
     if juz_number > 30 or juz_number <= 0:
         bot.send_message(message.chat.id, "No juz found! May be you sent wrong parameters. Please enter a number "
-                                          "between [1, 30]")
+                                          "between [1, 30] after command")
         return
 
     if juz.check_read(juz_number):
@@ -127,8 +128,23 @@ def show_all_juz(message):
 
 @bot.message_handler(commands=['done'])
 def done_reading_juz(message):
-    juz_number = int(tools.extract_arg(message.text)[0])
-    if juz_number > 30:
+    data = tools.extract_arg(message.text)
+
+    if not tools.check_has_arg(data):
+        bot.send_message(message.chat.id, "Can not assign as done. Please enter a number "
+                                          "between [1, 30] after command")
+        return
+
+    juz_number = data[0]
+
+    if not juz_number.isdigit():
+        bot.send_message(message.chat.id, "Please write a number, you sent wrong parameters. Please enter a number "
+                                          "between [1, 30] after command")
+        return
+
+    juz_number = int(juz_number)
+
+    if juz_number > 30 or juz_number <= 0:
         bot.send_message(message.chat.id, "No juz found!")
         return
 
@@ -147,10 +163,23 @@ def done_reading_juz(message):
 
 @bot.message_handler(commands=["drop"])
 def drop_user(message):
-    juz_number = int(tools.extract_arg(message.text)[0])
+    data = tools.extract_arg(message.text)
 
-    if juz.check_free(juz_number):
-        bot.send_message(message.chat.id, "You can't drop an empty juz!")
+    if not tools.check_has_arg(data):
+        bot.send_message(message.chat.id, "Can not drop. Please enter a number between [1, 30] after command")
+        return
+
+    juz_number = data[0]
+
+    if not juz_number.isdigit():
+        bot.send_message(message.chat.id, "Please write a number, you sent wrong parameters. Please enter a number "
+                                          "between [1, 30] after command")
+        return
+
+    juz_number = int(juz_number)
+
+    if juz_number > 30 or juz_number <= 0:
+        bot.send_message(message.chat.id, "No juz found!")
         return
 
     if not juz.check_mine(juz_number, message.from_user.username):
