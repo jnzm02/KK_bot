@@ -1,3 +1,5 @@
+import tools
+
 juz_dict = {}
 
 for juz in range(1, 31):
@@ -9,22 +11,6 @@ def make_empty():
         is_free = ["", False]
 
 
-def show_list(my_list):
-    # first = True
-    # the_list = ""
-    # for item in my_list:
-    #     if not first:
-    #         the_list += ', '
-    #     the_list += str(item)
-    #     first = False
-
-    the_list = ""
-    for item in my_list:
-        the_list += item + '\n'
-
-    return the_list
-
-
 def show_all():
     my_list = []
     for juz_number, is_free in juz_dict.items():
@@ -33,7 +19,7 @@ def show_all():
         else:
             my_list.append(str(str(juz_number) + ": " + str(is_free[0])))
 
-    return show_list(my_list)
+    return tools.show_list(my_list)
 
 
 def free_juz_list():
@@ -45,7 +31,7 @@ def free_juz_list():
             else:
                 my_list.append(str(juz_number))
 
-    return show_list(my_list)
+    return tools.show_list(my_list)
 
 
 def get_my_list(username):
@@ -56,7 +42,7 @@ def get_my_list(username):
                 my_list.append(str(juz_number) + '✅')
             else:
                 my_list.append(str(juz_number))
-    return show_list(my_list)
+    return tools.show_list(my_list)
 
 
 def done_reading(juz_number):

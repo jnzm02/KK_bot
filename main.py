@@ -8,6 +8,7 @@ from apscheduler.schedulers.blocking import BlockingScheduler
 # from apscheduler.schedulers.asyncio import AsyncIOScheduler
 
 # local
+import admins
 import juz
 import tools
 
@@ -195,6 +196,84 @@ def drop_user(message):
     message_text_for_admin = str(message.from_user.username) + ' has dropped ' + str(juz_number) + ' juz '
     bot.send_message(SUPER_ADMIN_ID, message_text_for_admin)
     bot.send_message(message.chat.id, "Successfully dropped the juz")
+
+
+@bot.message_handler(commands=['request_to_become_admin'])
+def request_to_admin_command(message):
+    user_id = message.from_user.id
+
+    if admins.exists_in_black_list(user_id):
+        bot.send_message(message.chat.id, "You are in black list. Contact SuperAdmin")
+        return
+
+    if admins.exists_in_admin_list(user_id):
+        bot.send_message(message.chat.id, "You are already an admin")
+        return
+
+    if admins.exists_in_waiting_list(user_id):
+        bot.send_message(message.chat.id, "You have already sent the request. "
+                                          "Wait till he/she answers or Contact him/her yourself")
+        return
+
+    message_text = "User " + str(message.from_user.username) + " with id: '" + str(message.from_user.id) + \
+                   "' wants to become admin use /approve command to approve " \
+                   "the user or /add_to_black_list if you want to add the user " \
+                   "to black list"
+    bot.send_message(SUPER_ADMIN_ID, message_text)
+
+
+@bot.message_handler(commands=['approve'])
+def approve_user(message):
+    data = tools.extract_arg(message.text)
+    user_id = data[0]
+    sender_id = message.from_user.id
+
+    if not admins.check_super_admin(sender_id):
+        bot.send_message(message.chat.id, "You are not Super Admin")
+        return
+
+    admins.approve_admin(user_id)
+    bot.send_message(message.chat.id, "Admin approved")
+    bot.send_message(user_id, "Hello, SuperAdmin approved you so from now you are an admin. Chat for admins: "
+                              "https://t.me/+UtEqHFZ0KoIzNGQy")
+
+
+@bot.message_handler(commands=['remove'])
+def remove_admin(message):
+    data = tools.extract_arg(message.text)
+    user_id = data[0]
+    sender_id = message.from_user.id
+
+    if not admins.check_super_admin(sender_id):
+        bot.send_message(message.chat.id, "You are not allowed for this command")
+        return
+
+    if not admins.check_super_admin(user_id):
+        bot.send_message(message.chat.id, "You cant remove Super Admin")
+        return
+
+    admins.remove_admin(user_id)
+    bot.send_message(message.chat.id, "Successfully removed user from admin list")
+
+
+@bot.message_handler(commands=['admins'])
+def admins_list_command(message):
+    user_id = message.from_user.id
+    if not admins.check_super_admin(user_id):
+        bot.send_message(message.chat.id, "You are not Super Admin")
+        return
+
+    message_text = admins.all_admins()
+    bot.send_message(message.chat.id, message_text)
+
+
+@bot.message_handler(commands=['admin_status'])
+def check_if_admins_command(message):
+    user_id = message.from_user.id
+    if admins.check_admin(user_id):
+        bot.send_message(message.chat.id, "You are admin")
+    else:
+        bot.send_message(message.chat.id, "You are not admin")
 
 
 bot.polling()
