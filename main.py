@@ -32,33 +32,6 @@ def send_evening_notification():
 # scheduler.start()
 
 
-@bot.message_handler(commands=['main_chat'])
-def set_main_chat(message):
-    if not message.from_user.id == SUPER_ADMIN_ID:
-        bot.send_message(message.chat.id, "You are not allowed to call this command")
-        return
-
-    general_chat_id = message.chat.id
-    bot.send_message(message.chat.id, "Successfully set this chat as a general chat!")
-
-
-@bot.message_handler(commands=['check_admin'])
-def check_admin_command(message):
-    if message.from_user.id == SUPER_ADMIN_ID:
-        bot.send_message(message.chat.id, "Yes you are admin")
-    else:
-        bot.send_message(message.chat.id, "No you are not admin")
-
-
-@bot.message_handler(commands=['check_chat'])
-def check_chat_command(message):
-    if not message.from_user.id != SUPER_ADMIN_ID:
-        bot.send_message(message.chat.id, "You are not allowed to call this command")
-        return
-
-    bot.send_message(general_chat_id, "This is the general chat")
-
-
 @bot.message_handler(commands=['start'])
 def start_command(message):
     bot.send_message(message.chat.id, 'Hello, I am a bot which monitor the process of Quran Hatim!')
@@ -75,11 +48,9 @@ def show_free_juz_command(message):
 def get_my_list_command(message):
     my_list = juz.get_my_list(message.from_user.username)
     if my_list == "":
-        message_text = "Your list is empty"
+        bot.send_message(message.chat.id, "Your list is empty")
     else:
-        message_text = "Your list:\n" + my_list
-
-    bot.send_message(message.chat.id, message_text)
+        bot.send_message(message.chat.id, "Your list:\n" + my_list)
 
 
 @bot.message_handler(commands=['add'])
@@ -193,43 +164,70 @@ def drop_user(message):
 
     juz.drop_user(juz_number)
 
-    message_text_for_admin = str(message.from_user.username) + ' has dropped ' + str(juz_number) + ' juz '
-    bot.send_message(SUPER_ADMIN_ID, message_text_for_admin)
+    bot.send_message(SUPER_ADMIN_ID, str(message.from_user.username) + ' has dropped ' + str(juz_number) + ' juz')
     bot.send_message(message.chat.id, "Successfully dropped the juz")
+
+
+@bot.message_handler(commands=['set_main_chat'])
+def set_main_chat(message):
+    if not message.from_user.id == SUPER_ADMIN_ID:
+        bot.send_message(message.chat.id, "You are not allowed to call this command")
+        return
+
+    general_chat_id = message.chat.id
+    bot.send_message(message.chat.id, "Successfully set this chat as a general chat!")
+
+
+@bot.message_handler(commands=['super_admin_status'])
+def super_admin_status_command(message):
+    if admins.check_super_admin(message.from_user.id):
+        bot.send_message(message.chat.id, "Yes you are super admin")
+    else:
+        bot.send_message(message.chat.id, "No you are not super admin")
+
+
+@bot.message_handler(commands=['check_chat'])
+def check_chat_command(message):
+    if not admins.check_admin(message.from_user.id):
+        bot.send_message(message.chat.id, "You are not allowed to call this command")
+        return
+
+    bot.send_message(general_chat_id, "This is a general chat")
 
 
 @bot.message_handler(commands=['request_to_become_admin'])
 def request_to_admin_command(message):
-    user_id = message.from_user.id
-
-    if admins.exists_in_black_list(user_id):
+    if admins.exists_in_black_list(message.from_user.id):
         bot.send_message(message.chat.id, "You are in black list. Contact SuperAdmin")
         return
 
-    if admins.exists_in_admin_list(user_id):
+    if admins.exists_in_admin_list(message.from_user.id):
         bot.send_message(message.chat.id, "You are already an admin")
         return
 
-    if admins.exists_in_waiting_list(user_id):
+    if admins.exists_in_waiting_list(message.from_user.id):
         bot.send_message(message.chat.id, "You have already sent the request. "
-                                          "Wait till he/she answers or Contact him/her yourself")
+                                          "Wait till Super Admin answers or Contact him yourself")
         return
 
-    message_text = "User " + str(message.from_user.username) + " with id: '" + str(message.from_user.id) + \
-                   "' wants to become admin use /approve command to approve " \
-                   "the user or /add_to_black_list if you want to add the user " \
-                   "to black list"
-    bot.send_message(SUPER_ADMIN_ID, message_text)
+    bot.send_message(SUPER_ADMIN_ID,
+                     "User " + str(message.from_user.username) + " with id: '" + str(message.from_user.id) + \
+                     "' wants to become admin use /approve command to approve " \
+                     "the user or /add_to_black_list if you want to add the user " \
+                     "to black list")
 
 
-@bot.message_handler(commands=['approve'])
+@bot.message_handler(commands=['approve_admin'])
 def approve_user(message):
     data = tools.extract_arg(message.text)
     user_id = data[0]
-    sender_id = message.from_user.id
 
-    if not admins.check_super_admin(sender_id):
-        bot.send_message(message.chat.id, "You are not Super Admin")
+    if not admins.check_super_admin(message.from_user.id):
+        bot.send_message(message.chat.id, "You are not allowed to call this command")
+        return
+
+    if admins.check_admin(message.from_user.id):
+        bot.send_message(message.chat.id, "This user is already an admin")
         return
 
     admins.approve_admin(user_id)
@@ -242,14 +240,17 @@ def approve_user(message):
 def remove_admin(message):
     data = tools.extract_arg(message.text)
     user_id = data[0]
-    sender_id = message.from_user.id
 
-    if not admins.check_super_admin(sender_id):
+    if not admins.check_super_admin(message.from_user.id):
         bot.send_message(message.chat.id, "You are not allowed for this command")
         return
 
-    if not admins.check_super_admin(user_id):
+    if admins.check_super_admin(user_id):
         bot.send_message(message.chat.id, "You cant remove Super Admin")
+        return
+
+    if not admins.exists_in_admin_list(user_id):
+        bot.send_message(message.chat.id, "This is user is not Admin")
         return
 
     admins.remove_admin(user_id)
@@ -258,22 +259,37 @@ def remove_admin(message):
 
 @bot.message_handler(commands=['admins'])
 def admins_list_command(message):
-    user_id = message.from_user.id
-    if not admins.check_super_admin(user_id):
+    if not admins.check_super_admin(message.from_user.id):
         bot.send_message(message.chat.id, "You are not Super Admin")
         return
 
-    message_text = admins.all_admins()
-    bot.send_message(message.chat.id, message_text)
+    bot.send_message(message.chat.id, admins.all_admins())
 
 
 @bot.message_handler(commands=['admin_status'])
-def check_if_admins_command(message):
-    user_id = message.from_user.id
-    if admins.check_admin(user_id):
+def check_if_admin_command(message):
+    if admins.check_admin(message.from_user.id):
         bot.send_message(message.chat.id, "You are admin")
     else:
         bot.send_message(message.chat.id, "You are not admin")
+
+
+@bot.message_handler(commands=['waiting_list'])
+def show_waiting_list_command(message):
+    if not admins.check_super_admin(message.from_user.id):
+        bot.send_message(message.chat.id, "You are not allowed to call this command")
+        return
+
+    bot.send_message(message.chat.id, admins.show_waiting_list())
+
+
+@bot.message_handler(commands=['black_list'])
+def show_black_list(message):
+    if not admins.check_super_admin(message.from_user.id):
+        bot.send_message(message.chat.id, "You are not allowed to call this command")
+        return
+
+    bot.send_message(message.chat.id, admins.show_black_list())
 
 
 bot.polling()
