@@ -2,6 +2,7 @@ import os
 
 import pytz
 import telebot
+import datetime
 
 from decouple import config
 from apscheduler.schedulers.blocking import BlockingScheduler
@@ -51,6 +52,22 @@ def get_my_list_command(message):
         bot.send_message(message.chat.id, "Your list is empty")
     else:
         bot.send_message(message.chat.id, "Your list:\n" + my_list)
+
+
+@bot.message_handler(commands=['set_deadline'])
+def set_deadline_command(message):
+
+    if not admins.check_admin(message.from_user.id):
+        bot.send_message(message.chat.id, "You are not admin")
+        return
+
+    data = tools.extract_arg(message.text)
+    date = data[0]
+    deadline = datetime.datetime.strptime(date, "%d/%m/%Y").date()
+    today = datetime.date.today()
+    days = deadline - today
+
+    bot.send_message(message.chat.id, "Successfully set deadline\nDays before deadline: "+str(days)+'\nDeadline : '+str(deadline))
 
 
 @bot.message_handler(commands=['add'])
@@ -226,7 +243,7 @@ def approve_user(message):
         bot.send_message(message.chat.id, "You are not allowed to call this command")
         return
 
-    if admins.check_admin(message.from_user.id):
+    if admins.check_admin(user_id):
         bot.send_message(message.chat.id, "This user is already an admin")
         return
 

@@ -15,3 +15,6 @@ def show_list(my_list):
 
     return the_list
 
+
+def extract_date(arg):
+    return arg.split('.')
