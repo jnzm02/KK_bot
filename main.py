@@ -1,8 +1,6 @@
-import os
-import pytz
 import telebot
 from decouple import config
-from apscheduler.schedulers.blocking import BlockingScheduler
+# from apscheduler.schedulers.blocking import BlockingScheduler
 # from apscheduler.schedulers.asyncio import AsyncIOScheduler
 
 # local
@@ -198,14 +196,14 @@ def done_reading_juz(message):
 
     if not tools.check_has_arg(data):
         bot.send_message(message.chat.id, "Can not assign as done. Please enter a number "
-                                          "between [1, 30] after command")
+                                          "between [1, 30] after the command")
         return
 
     juz_number = data[0]
 
     if not juz_number.isdigit():
         bot.send_message(message.chat.id, "Please write a number, you sent wrong parameters. Please enter a number "
-                                          "between [1, 30] after command")
+                                          "between [1, 30] after the command")
         return
 
     juz_number = int(juz_number)
@@ -268,6 +266,7 @@ def set_main_chat(message):
         bot.send_message(message.chat.id, "You are not allowed to call this command")
         return
 
+    global general_chat_id
     general_chat_id = message.chat.id
     bot.send_message(message.chat.id, "Successfully set this chat as a general chat!")
 
@@ -305,9 +304,9 @@ def request_to_admin_command(message):
         return
 
     bot.send_message(SUPER_ADMIN_ID,
-                     "User " + str(message.from_user.username) + " with id: '" + str(message.from_user.id) + \
-                     "' wants to become admin use /approve command to approve " \
-                     "the user or /add_to_black_list if you want to add the user " \
+                     "User " + str(message.from_user.username) + " with id: '" + str(message.from_user.id) +
+                     "' wants to become admin use /approve command to approve "
+                     "the user or /add_to_black_list if you want to add the user "
                      "to black list")
 
 
@@ -398,7 +397,6 @@ def message_handler(message):
         bot.send_message(message.chat.id, "Choose which action you want to perform",
                          reply_markup=keyboard.deadline_keyboard())
 
-
     # Buttons to info
 
     elif message.text == 'free juz':
@@ -406,6 +404,8 @@ def message_handler(message):
 
     else:
         bot.send_message(message.chat.id, "Something went wrong!")
+
+    # Buttons to  InlineKeyboard
 
 
 bot.polling()
