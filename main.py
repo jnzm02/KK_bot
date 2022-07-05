@@ -1,17 +1,18 @@
 import os
-
 import pytz
 import telebot
-import datetime
-
+from telebot import types
+from telebot.types import ReplyKeyboardMarkup, InlineKeyboardMarkup, InlineKeyboardButton, KeyboardButton
 from decouple import config
 from apscheduler.schedulers.blocking import BlockingScheduler
 # from apscheduler.schedulers.asyncio import AsyncIOScheduler
 
 # local
 import admins
+import deadline
 import juz
 import tools
+import keyboard
 
 API_KEY = config('API_KEY')
 general_chat_id = config('KK_bot_hatym_bot_test_chat')
@@ -19,11 +20,11 @@ SUPER_ADMIN_ID = int(config('SUPER_ADMIN_ID'))
 
 bot = telebot.TeleBot(API_KEY)
 
-deadline = '01.07.2022'
-
 
 def send_evening_notification():
-    message_text = "Today's Updates for Quran Hatim: " + str(deadline) + '\n'
+    if not deadline.check_new_deadline():
+        deadline.set_deadline(deadline.today().day, deadline.today().month, deadline.today().year)
+    message_text = "Today's Updates for Quran Hatim: " + str(deadline.get_deadline()) + '\n'
     message_text += juz.show_all()
     bot.send_message(general_chat_id, message_text)
 
@@ -35,7 +36,29 @@ def send_evening_notification():
 
 @bot.message_handler(commands=['start'])
 def start_command(message):
-    bot.send_message(message.chat.id, 'Hello, I am a bot which monitor the process of Quran Hatim!')
+    if not admins.check_admin(message.from_user.id):
+        return
+
+    bot.send_message(message.chat.id, "Hello, to the team", reply_markup=keyboard.start_keyboard())
+
+    # markup_inline = types.ReplyKeyboardMarkup(row_width=2)
+    #
+    # item_add_juz = types.KeyboardButton(text='read Quran')
+    # item_done_juz = types.KeyboardButton(text='done Reading')
+    # item_drop_juz = types.KeyboardButton(text='drop Reading')
+    # item_free_juz = types.KeyboardButton(text='free Juz')
+    #
+    # markup_inline.add(item_add_juz, item_free_juz, item_drop_juz, item_done_juz)
+    #
+    # keyboard = [
+    #     types.KeyboardButton(text='read Quran'),
+    #     types.KeyboardButton(text='done Reading'),
+    #     types.KeyboardButton(text='drop Reading'),
+    #     types.KeyboardButton(text='free Juz')
+    # ]
+    #
+    # bot.send_message(message.chat.id, 'Hello, I am a bot which monitor the process of Quran Hatim!',
+    #                  reply_markup=keyboard)
 
 
 @bot.message_handler(commands=['free_juz'])
@@ -56,18 +79,50 @@ def get_my_list_command(message):
 
 @bot.message_handler(commands=['set_deadline'])
 def set_deadline_command(message):
-
     if not admins.check_admin(message.from_user.id):
         bot.send_message(message.chat.id, "You are not admin")
         return
 
     data = tools.extract_arg(message.text)
-    date = data[0]
-    deadline = datetime.datetime.strptime(date, "%d/%m/%Y").date()
-    today = datetime.date.today()
-    days = deadline - today
+    day, month, year = data[0], data[1], data[2]
+    if not tools.check_date(day, month, year):
+        bot.send_message(message.chat.id, "You entered uncorrect date, Please enter a correct one")
+    # deadline = datetime.datetime.strptime(date, "%d/%m/%Y").date()
+    # deadline = deadline.replace(hour=20, minute=0)
 
-    bot.send_message(message.chat.id, "Successfully set deadline\nDays before deadline: "+str(days)+'\nDeadline : '+str(deadline))
+    deadline.set_deadline(day, month, year)
+    # today = deadline.today()
+    # days = deadline.get_deadline() - today
+    days = 1
+
+    bot.send_message(message.chat.id,
+                     "Successfully set deadline\nDays before deadline: " + str(days) + '\nDeadline : ' +
+                     str(deadline.get_deadline()))
+
+
+@bot.message_handler(commands=['deadline extend'])
+def deadline_extend_command(message):
+    if not admins.check_admin(message.from_user.id):
+        bot.send_message(message.chat.id, "You are not allowed to call this command")
+        return
+
+    data = tools.extract_arg(message.txt)
+
+    if not tools.check_has_arg(data):
+        bot.send_message(message.chat.id, "Can't extend deadline with empty number of days. Please, Enter a number of "
+                                          "days so that we can extend the deadline")
+        return
+
+    number_of_days = data[0]
+
+    if not number_of_days.is_digit():
+        bot.send_message(message.chat.id, "Please Enter a number after command, seems you sent invalid argument")
+        return
+
+    number_of_days = int(number_of_days)
+    new_deadline = deadline.extend_deadline(number_of_days)
+
+    bot.send_message(message.chat.id, "")
 
 
 @bot.message_handler(commands=['add'])
@@ -307,6 +362,28 @@ def show_black_list(message):
         return
 
     bot.send_message(message.chat.id, admins.show_black_list())
+
+
+@bot.message_handler(content_types=['text'])
+def message_handler(message):
+    # Buttons to Buttons
+
+    if message.text == 'Read Quran':
+        bot.send_message(message.chat.id, "Choose which action you want to perform",
+                         reply_markup=keyboard.read_quran_keyboard())
+
+    elif message.text == 'Deadline':
+        bot.send_message(message.chat.id, "Choose which action you want to perform",
+                         reply_markup=keyboard.deadline_keyboard())
+
+
+    # Buttons to info
+
+    elif message.text == 'free juz':
+        show_free_juz_command(message)
+
+    else:
+        bot.send_message(message.chat.id, "Something went wrong!")
 
 
 bot.polling()
