@@ -1,8 +1,6 @@
 import os
 import pytz
 import telebot
-from telebot import types
-from telebot.types import ReplyKeyboardMarkup, InlineKeyboardMarkup, InlineKeyboardButton, KeyboardButton
 from decouple import config
 from apscheduler.schedulers.blocking import BlockingScheduler
 # from apscheduler.schedulers.asyncio import AsyncIOScheduler
@@ -85,28 +83,28 @@ def set_deadline_command(message):
 
     data = tools.extract_arg(message.text)
     day, month, year = data[0], data[1], data[2]
-    if not tools.check_date(day, month, year):
-        bot.send_message(message.chat.id, "You entered uncorrect date, Please enter a correct one")
-    # deadline = datetime.datetime.strptime(date, "%d/%m/%Y").date()
-    # deadline = deadline.replace(hour=20, minute=0)
+    if not deadline.check_date(day, month, year):
+        bot.send_message(message.chat.id, "You entered incorrect date, Please enter a correct one")
 
     deadline.set_deadline(day, month, year)
-    # today = deadline.today()
-    # days = deadline.get_deadline() - today
-    days = 1
+
+    if deadline.till_deadline() < 0:
+        bot.send_message(message.chat.id, "This date is already past, please choose an another date")
+        deadline.set_deadline(1, 1, 2022)
+        return
 
     bot.send_message(message.chat.id,
-                     "Successfully set deadline\nDays before deadline: " + str(days) + '\nDeadline : ' +
-                     str(deadline.get_deadline()))
+                     "Successfully set deadline\nDays before deadline: " + str(deadline.till_deadline()) +
+                     '\nDeadline : ' + str(deadline.get_deadline()))
 
 
-@bot.message_handler(commands=['deadline extend'])
-def deadline_extend_command(message):
+@bot.message_handler(commands=['extend_deadline'])
+def extend_deadline_command(message):
     if not admins.check_admin(message.from_user.id):
         bot.send_message(message.chat.id, "You are not allowed to call this command")
         return
 
-    data = tools.extract_arg(message.txt)
+    data = tools.extract_arg(message.text)
 
     if not tools.check_has_arg(data):
         bot.send_message(message.chat.id, "Can't extend deadline with empty number of days. Please, Enter a number of "
@@ -115,14 +113,38 @@ def deadline_extend_command(message):
 
     number_of_days = data[0]
 
-    if not number_of_days.is_digit():
+    if not number_of_days.isdigit():
         bot.send_message(message.chat.id, "Please Enter a number after command, seems you sent invalid argument")
         return
 
     number_of_days = int(number_of_days)
-    new_deadline = deadline.extend_deadline(number_of_days)
+    deadline.extend_deadline(number_of_days)
 
-    bot.send_message(message.chat.id, "")
+    bot.send_message(message.chat.id, "Deadline extended for " + str(number_of_days) + " days\n" +
+                     "New deadline is " + str(deadline.get_deadline()))
+
+
+@bot.message_handler(commands=['remove_deadline'])
+def remove_deadline_command(message):
+    if not admins.check_admin(message.from_user.id):
+        bot.send_message(message.chat.id, "You are not allowed to call this command")
+        return
+
+    deadline.remove_deadline()
+    bot.send_message(message.chat.id, "Successfully removed deadline")
+
+
+@bot.message_handler(commands=['check_deadline'])
+def check_deadline_command(message):
+    if not admins.check_admin(message.from_user.id):
+        bot.send_message(message.chat.id, "You are not allowed to call this command")
+        return
+
+    if not deadline.check_deadline():
+        bot.send_message(message.chat.id, "The deadline does not exist")
+        return
+
+    bot.send_message(message.chat.id, "The deadline is: "+str(deadline.get_deadline()))
 
 
 @bot.message_handler(commands=['add'])

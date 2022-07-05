@@ -4,9 +4,20 @@ deadline = datetime.datetime(2022, 1, 1, 20, 0, 0)
 default_deadline = datetime.datetime(2022, 1, 1, 20, 0, 0)
 
 
+def check_deadline():
+    return not deadline == datetime.datetime(2022, 1, 1, 20, 0, 0)
+
+
 def set_deadline(day, month, year):
-    print(day, month, year)
-    deadline.replace(year=int(year), month=int(month), day=int(day))
+    global deadline
+    new_deadline = datetime.datetime(int(year), int(month), int(day), 20, 0, 0)
+    deadline = new_deadline
+    del new_deadline
+
+
+def till_deadline():
+    delta = deadline - datetime.datetime.today()
+    return delta.days
 
 
 def get_deadline():
@@ -32,3 +43,12 @@ def extend_deadline(days):
 
 def today():
     return datetime.date.today()
+
+
+def check_date(day, month, year):
+    try:
+        datetime.datetime(int(year), int(month), int(day))
+    except ValueError:
+        return False
+
+    return True
