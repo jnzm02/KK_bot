@@ -1,4 +1,9 @@
-from telebot.types import ReplyKeyboardMarkup, KeyboardButton
+from telebot.types import (
+    ReplyKeyboardMarkup, KeyboardButton,
+    InlineKeyboardMarkup, InlineKeyboardButton
+)
+
+import juz
 
 
 def start_keyboard():
@@ -33,5 +38,15 @@ def deadline_keyboard():
         KeyboardButton('Remove Deadline'),
         KeyboardButton('Show Deadline'),
     )
+
+    return keyboard
+
+
+def add_juz_keyboard():
+    keyboard = InlineKeyboardMarkup(row_width=3)
+    for number in juz.free_juz():
+        keyboard.add(
+                InlineKeyboardButton(number, callback_data='cb_free_juz_'+number),
+        )
 
     return keyboard

@@ -26,9 +26,7 @@ def free_juz_list():
     my_list = []
     for juz_number, is_free in juz_dict.items():
         if len(is_free[0]) == 0:
-            if is_free[1]:
-                my_list.append(str(str(juz_number) + 'done'))
-            else:
+            if not is_free[1]:
                 my_list.append(str(juz_number))
 
     return tools.show_list(my_list)
@@ -70,3 +68,13 @@ def drop_user(juz_number):
 
 def check_free(juz_number):
     return juz_dict[juz_number][0] == ""
+
+
+def free_juz():
+    my_list = []
+    for juz_number, is_free in juz_dict.items():
+        if len(is_free[0]) == 0:
+            if not is_free[1]:
+                my_list.append(str(juz_number))
+
+    return my_list

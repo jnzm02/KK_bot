@@ -37,25 +37,6 @@ def start_command(message):
 
     bot.send_message(message.chat.id, "Hello, to the team", reply_markup=keyboard.start_keyboard())
 
-    # markup_inline = types.ReplyKeyboardMarkup(row_width=2)
-    #
-    # item_add_juz = types.KeyboardButton(text='read Quran')
-    # item_done_juz = types.KeyboardButton(text='done Reading')
-    # item_drop_juz = types.KeyboardButton(text='drop Reading')
-    # item_free_juz = types.KeyboardButton(text='free Juz')
-    #
-    # markup_inline.add(item_add_juz, item_free_juz, item_drop_juz, item_done_juz)
-    #
-    # keyboard = [
-    #     types.KeyboardButton(text='read Quran'),
-    #     types.KeyboardButton(text='done Reading'),
-    #     types.KeyboardButton(text='drop Reading'),
-    #     types.KeyboardButton(text='free Juz')
-    # ]
-    #
-    # bot.send_message(message.chat.id, 'Hello, I am a bot which monitor the process of Quran Hatim!',
-    #                  reply_markup=keyboard)
-
 
 @bot.message_handler(commands=['free_juz'])
 def show_free_juz_command(message):
@@ -65,12 +46,9 @@ def show_free_juz_command(message):
 
 
 @bot.message_handler(commands=['my_list'])
-def get_my_list_command(message):
+def my_list_command(message):
     my_list = juz.get_my_list(message.from_user.username)
-    if my_list == "":
-        bot.send_message(message.chat.id, "Your list is empty")
-    else:
-        bot.send_message(message.chat.id, "Your list:\n" + my_list)
+    bot.send_message(message.chat.id, "Your list:\n" + my_list)
 
 
 @bot.message_handler(commands=['set_deadline'])
@@ -385,7 +363,15 @@ def show_black_list(message):
     bot.send_message(message.chat.id, admins.show_black_list())
 
 
-@bot.message_handler(content_types=['text'])
+@bot.callback_query_handler(func=lambda call: True)
+def callback_query(call):
+    for number in range(1, 31):
+        if call.data == 'cb_free_juz_'+str(number):
+            juz.add_user(int(number), call.from_user.username)
+            bot.answer_callback_query(call.id, 'Successfully added '+str(number)+' to your list')
+
+
+@bot.message_handler(func=lambda message: True)
 def message_handler(message):
     # Buttons to Buttons
 
@@ -402,10 +388,16 @@ def message_handler(message):
     elif message.text == 'free juz':
         show_free_juz_command(message)
 
-    else:
-        bot.send_message(message.chat.id, "Something went wrong!")
+    elif message.text == 'my list':
+        my_list_command(message)
 
     # Buttons to  InlineKeyboard
+
+    elif message.text == 'add juz':
+        bot.send_message(message.chat.id, "Choose which juz you want to read", reply_markup=keyboard.add_juz_keyboard())
+
+    else:
+        bot.send_message(message.chat.id, "Something went wrong!")
 
 
 bot.polling()
