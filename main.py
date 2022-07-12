@@ -1,4 +1,5 @@
 import telebot
+import sqlite3
 from decouple import config
 # from apscheduler.schedulers.blocking import BlockingScheduler
 # from apscheduler.schedulers.asyncio import AsyncIOScheduler
@@ -395,6 +396,20 @@ def message_handler(message):
 
     elif message.text == 'add juz':
         bot.send_message(message.chat.id, "Choose which juz you want to read", reply_markup=keyboard.add_juz_keyboard())
+
+    elif message.text == 'drop juz':
+        bot.send_message(message.chat.id, "Choose which juz you want to drop",
+                         reply_markup=keyboard.drop_juz_keyboard(message.from_user.id))
+
+    elif message.text == 'done juz':
+        bot.send_message(message.chat.id, "Choose which juz you have finished reading",
+                         reply_markup=keyboard.done_juz_keyboard(message.from_user.id))
+
+    elif message.text == 'Show List':
+        bot.send_message(message.chat.id, juz.show_all())
+
+    elif message.text == 'Show Deadline':
+        bot.send_message(message.chat.id, deadline.get_deadline(), reply_markup=keyboard.start_keyboard())
 
     else:
         bot.send_message(message.chat.id, "Something went wrong!")
