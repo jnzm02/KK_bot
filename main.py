@@ -59,6 +59,11 @@ def set_deadline_command(message):
         return
 
     data = tools.extract_arg(message.text)
+
+    if len(data) < 3:
+        bot.send_message(message.chat.id, 'Please Enter 3 fields for day month and year respectively')
+        return
+
     day, month, year = data[0], data[1], data[2]
     if not deadline.check_date(day, month, year):
         bot.send_message(message.chat.id, "You entered incorrect date, Please enter a correct one")
@@ -72,7 +77,7 @@ def set_deadline_command(message):
 
     bot.send_message(message.chat.id,
                      "Successfully set deadline\nDays before deadline: " + str(deadline.till_deadline()) +
-                     '\nDeadline : ' + str(deadline.get_deadline()))
+                     '\nDeadline : ' + str(deadline.get_deadline()), reply_markup=keyboard.deadline_keyboard())
 
 
 @bot.message_handler(commands=['extend_deadline'])
@@ -121,7 +126,7 @@ def check_deadline_command(message):
         bot.send_message(message.chat.id, "The deadline does not exist")
         return
 
-    bot.send_message(message.chat.id, "The deadline is: "+str(deadline.get_deadline()))
+    bot.send_message(message.chat.id, "The deadline is: " + str(deadline.get_deadline()))
 
 
 @bot.message_handler(commands=['add'])
@@ -364,27 +369,42 @@ def show_black_list(message):
     bot.send_message(message.chat.id, admins.show_black_list())
 
 
+def callback_juz(call, task, action):
+    if task == 'add':
+        juz.add_user(int(action), call.from_user.username)
+        bot.answer_callback_query(call.id, 'Successfully Added ' + str(action) + ' to your list')
+
+    elif task == 'done':
+        juz.done_reading(int(action))
+        bot.answer_callback_query(call.id, 'Congrats! May Allah bless your efforts')
+
+    elif task == 'drop':
+        juz.drop_user(int(action))
+        bot.answer_callback_query(call.id, 'Successfully Dropped the ' + str(action) + ' juz from your list')
+        bot.send_message(SUPER_ADMIN_ID, 'The user ' + str(call.from_user.username) + ' dropped the juz ' + str(action))
+
+
+def callback_deadline(call, task, action):
+    if task == 'extend_deadline':
+        deadline.extend_deadline(int(action))
+        bot.answer_callback_query(call.id, "Deadline is extended for " + action + ' days')
+
+
 @bot.callback_query_handler(func=lambda call: True)
 def callback_query(call):
     words = tools.split_callback_data(call.data)
-    task = words[0]
-    juz_number = words[1]
+    field = words[0]
+    task = words[1]
+    action = words[2]
     # for number in range(1, 31):
     #     if words[1] == str(number):
     #         juz.add_user(int(number), call.from_user.username)
     #         bot.answer_callback_query(call.id, 'Successfully added '+str(number)+' to your list')
-    if task == 'add':
-        juz.add_user(int(juz_number), call.from_user.username)
-        bot.answer_callback_query(call.id, 'Successfully Added '+str(juz_number)+' to your list')
+    if field == 'juz':
+        callback_juz(call, task, action)
 
-    elif task == 'done':
-        juz.done_reading(int(juz_number))
-        bot.answer_callback_query(call.id, 'Congrats! May Allah bless your efforts')
-
-    elif task == 'drop':
-        juz.drop_user(int(juz_number))
-        bot.answer_callback_query(call.id, 'Successfully Dropped the '+str(juz_number)+' juz from your list')
-        bot.send_message(SUPER_ADMIN_ID, 'The user '+str(call.from_user.username)+'dropped the juz'+str(juz_number))
+    if field == 'deadline':
+        callback_deadline(call, task, action)
 
     else:
         bot.answer_callback_query(call.id, 'Something went WRONG!')
@@ -428,7 +448,34 @@ def message_handler(message):
         bot.send_message(message.chat.id, juz.show_all())
 
     elif message.text == 'Show Deadline':
-        bot.send_message(message.chat.id, deadline.get_deadline(), reply_markup=keyboard.start_keyboard())
+        if not deadline.check_deadline():
+            bot.send_message(message.chat.id, "You did not set deadline")
+        else:
+            bot.send_message(message.chat.id, deadline.get_deadline(), reply_markup=keyboard.deadline_keyboard())
+
+    elif message.text == 'Extend Deadline':
+        if not deadline.check_deadline():
+            bot.send_message(message.chat.id, "You did not set deadline")
+        else:
+            bot.send_message(message.chat.id, 'Choose the appropriate date',
+                             reply_markup=keyboard.extend_deadline_keyboard())
+
+    elif message.text == "◀Back":
+        start_command(message)
+
+    elif message.text == 'Set Deadline':
+        message_text = 'The admin did not finished this part. You can use /set_deadline command instead. For example ' \
+                       '</set_deadline ' + str(deadline.today().day) + ' ' + str(deadline.today().month) + ' ' + str(
+                        deadline.today().year) + '>'
+        bot.send_message(message.chat.id, message_text)
+
+    elif message.text == 'Remove Deadline':
+        if not deadline.check_deadline():
+            bot.send_message(message.chat.id, "You did not set deadline")
+        else:
+            deadline.remove_deadline()
+            bot.send_message(message.chat.id, "Successfully Removed the Deadline",
+                             reply_markup=keyboard.deadline_keyboard())
 
     else:
         bot.send_message(message.chat.id, "Something went wrong!")
