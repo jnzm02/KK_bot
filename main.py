@@ -366,10 +366,28 @@ def show_black_list(message):
 
 @bot.callback_query_handler(func=lambda call: True)
 def callback_query(call):
-    for number in range(1, 31):
-        if call.data == 'cb_free_juz_'+str(number):
-            juz.add_user(int(number), call.from_user.username)
-            bot.answer_callback_query(call.id, 'Successfully added '+str(number)+' to your list')
+    words = tools.split_callback_data(call.data)
+    task = words[0]
+    juz_number = words[1]
+    # for number in range(1, 31):
+    #     if words[1] == str(number):
+    #         juz.add_user(int(number), call.from_user.username)
+    #         bot.answer_callback_query(call.id, 'Successfully added '+str(number)+' to your list')
+    if task == 'add':
+        juz.add_user(int(juz_number), call.from_user.username)
+        bot.answer_callback_query(call.id, 'Successfully Added '+str(juz_number)+' to your list')
+
+    elif task == 'done':
+        juz.done_reading(int(juz_number))
+        bot.answer_callback_query(call.id, 'Congrats! May Allah bless your efforts')
+
+    elif task == 'drop':
+        juz.drop_user(int(juz_number))
+        bot.answer_callback_query(call.id, 'Successfully Dropped the '+str(juz_number)+' juz from your list')
+        bot.send_message(SUPER_ADMIN_ID, 'The user '+str(call.from_user.username)+'dropped the juz'+str(juz_number))
+
+    else:
+        bot.answer_callback_query(call.id, 'Something went WRONG!')
 
 
 @bot.message_handler(func=lambda message: True)
@@ -395,15 +413,16 @@ def message_handler(message):
     # Buttons to  InlineKeyboard
 
     elif message.text == 'add juz':
-        bot.send_message(message.chat.id, "Choose which juz you want to read", reply_markup=keyboard.add_juz_keyboard())
+        bot.send_message(message.chat.id, "Choose which juz you want to read",
+                         reply_markup=keyboard.add_juz_keyboard())
 
     elif message.text == 'drop juz':
         bot.send_message(message.chat.id, "Choose which juz you want to drop",
-                         reply_markup=keyboard.drop_juz_keyboard(message.from_user.id))
+                         reply_markup=keyboard.drop_juz_keyboard(message.from_user.username))
 
     elif message.text == 'done juz':
         bot.send_message(message.chat.id, "Choose which juz you have finished reading",
-                         reply_markup=keyboard.done_juz_keyboard(message.from_user.id))
+                         reply_markup=keyboard.done_juz_keyboard(message.from_user.username))
 
     elif message.text == 'Show List':
         bot.send_message(message.chat.id, juz.show_all())

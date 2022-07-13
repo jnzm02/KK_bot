@@ -43,34 +43,41 @@ def deadline_keyboard():
 
 
 def add_juz_keyboard():
-    return generate_juz_keyboard(juz.free_juz())
+    return generate_juz_keyboard(juz.free_juz(), 'add')
 
 
-def drop_juz_keyboard(user_id):
-    return generate_juz_keyboard(juz.get_my_list(user_id))
+def drop_juz_keyboard(username):
+    return generate_juz_keyboard(juz.generate_my_list(username), 'drop')
 
 
-def done_juz_keyboard(user_id):
-    return generate_juz_keyboard(juz.get_my_list(user_id))
+def done_juz_keyboard(username):
+    return generate_juz_keyboard(juz.generate_my_list(username), 'done')
 
 
-def generate_juz_keyboard(my_list):
+def generate_juz_keyboard(my_list, task):
     temp_keyboard = InlineKeyboardMarkup(row_width=3)
+    # print(my_list)
     for number in range(len(my_list)):
         if number % 3 == 2:
             temp_keyboard.add(
-                InlineKeyboardButton(my_list[number - 2], callback_data='cb_free_juz_' + my_list[number - 2]),
-                InlineKeyboardButton(my_list[number - 1], callback_data='cb_free_juz_' + my_list[number - 1]),
-                InlineKeyboardButton(my_list[number], callback_data='cb_free_juz_' + my_list[number]),
+                InlineKeyboardButton(my_list[number-2],
+                                     callback_data=task+'.'+my_list[number-2]),
+                InlineKeyboardButton(my_list[number-1],
+                                     callback_data=task+'.'+my_list[number-1]),
+                InlineKeyboardButton(my_list[number],
+                                     callback_data=task+'.'+my_list[number]),
             )
     if len(my_list) % 3 == 2:
         temp_keyboard.add(
-            InlineKeyboardButton(my_list[len(my_list) - 2], callback_data='cb_free_juz_' + my_list[len(my_list) - 2]),
-            InlineKeyboardButton(my_list[len(my_list) - 1], callback_data='cb_free_juz_' + my_list[len(my_list) - 1])
+            InlineKeyboardButton(my_list[len(my_list)-2],
+                                 callback_data=task+'.'+my_list[len(my_list)-2]),
+            InlineKeyboardButton(my_list[len(my_list)-1],
+                                 callback_data=task+'.'+my_list[len(my_list)-1])
         )
     if len(my_list) % 3 == 1:
         temp_keyboard.add(
-            InlineKeyboardButton(my_list[len(my_list) - 1], callback_data='cb_free_juz_' + my_list[len(my_list) - 1])
+            InlineKeyboardButton(my_list[len(my_list)-1],
+                                 callback_data=task+'.'+my_list[len(my_list)-1])
         )
 
     return temp_keyboard

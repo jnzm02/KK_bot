@@ -32,7 +32,7 @@ def free_juz_list():
     return tools.show_list(my_list)
 
 
-def get_my_list(username):
+def generate_my_list(username):
     my_list = []
     for juz_number, name in juz_dict.items():
         if name[0] == username:
@@ -40,7 +40,11 @@ def get_my_list(username):
                 my_list.append(str(juz_number) + '✅')
             else:
                 my_list.append(str(juz_number))
-    return tools.show_list(my_list)
+    return my_list
+
+
+def get_my_list(username):
+    return tools.show_list(generate_my_list(username))
 
 
 def done_reading(juz_number):

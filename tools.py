@@ -21,5 +21,10 @@ def extract_date(arg):
     return arg.split('.')
 
 
+def split_callback_data(data):
+    words = data.split('.')
+    return words
+
+
 
 
