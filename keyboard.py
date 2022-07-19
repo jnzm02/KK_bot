@@ -68,7 +68,6 @@ def done_juz_keyboard(username):
 
 def generate_juz_keyboard(my_list, task):
     temp_keyboard = InlineKeyboardMarkup(row_width=3)
-    # print(my_list)
     for number in range(len(my_list)):
         if number % 3 == 2:
             temp_keyboard.add(

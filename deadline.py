@@ -21,7 +21,11 @@ def till_deadline():
 
 
 def get_deadline():
-    return deadline
+    return '⏰ '+str(deadline)
+
+
+def clean_all():
+    remove_deadline()
 
 
 def check_new_deadline():

@@ -14,6 +14,8 @@ import keyboard
 API_KEY = config('API_KEY')
 general_chat_id = config('KK_bot_hatym_bot_test_chat')
 SUPER_ADMIN_ID = int(config('SUPER_ADMIN_ID'))
+hatm_counter = 1
+
 
 bot = telebot.TeleBot(API_KEY)
 
@@ -31,12 +33,40 @@ def send_evening_notification():
 # scheduler.start()
 
 
-@bot.message_handler(commands=['start'])
-def start_command(message):
+@bot.message_handler(commands=['completed_hatm'])
+def completed_hatm_command(message):
     if not admins.check_admin(message.from_user.id):
         return
 
-    bot.send_message(message.chat.id, "Hello, to the team", reply_markup=keyboard.start_keyboard())
+    # for user_id in juz.generate_user_id_list():
+    #     bot.send_message(user_id, "You've show a great work in reading Quran. May Allah bless your efforts")
+    juz.clean_all()
+    deadline.clean_all()
+    global hatm_counter
+    hatm_counter += 1
+    bot.send_message(general_chat_id, "Congrats, we have finished reading our " + str(hatm_counter) + "hatm. "
+                                      "Thank you for everyone who engaged in this. May Allah bless your efforts")
+
+
+@bot.message_handler(commands=['start_hatm'])
+def start_hatm_command(message):
+    if not admins.check_admin(message.from_user.id):
+        return
+
+    juz.clean_all()
+    deadline.clean_all()
+    bot.send_message(general_chat_id, "You started new hatm, do not hesitate to read Quran. May Allah bless your efforts")
+
+
+@bot.message_handler(commands=['start'])
+def start_command(message):
+    message_text = "Hello to the Team, " \
+                   "This bot is created to make the process of reading Quran more comfortable with your peers." \
+                   "The bot will monitor the process of reading Quran"
+    bot.send_message(message.chat.id, message_text)
+
+    if message.chat.type == 'private':
+        bot.send_message(message.chat.id, "Hello, to the team", reply_markup=keyboard.start_keyboard())
 
 
 @bot.message_handler(commands=['free_juz'])
@@ -48,8 +78,11 @@ def show_free_juz_command(message):
 
 @bot.message_handler(commands=['my_list'])
 def my_list_command(message):
-    my_list = juz.get_my_list(message.from_user.username)
-    bot.send_message(message.chat.id, "Your list:\n" + my_list)
+    if len(juz.generate_my_list(message.from_user.username)) > 0:
+        my_list = juz.get_my_list(message.from_user.username)
+        bot.send_message(message.chat.id, "Your list:\n" + my_list)
+    else:
+        bot.send_message(message.chat.id, "Your list is empty")
 
 
 @bot.message_handler(commands=['set_deadline'])
@@ -375,10 +408,16 @@ def callback_juz(call, task, action):
         bot.answer_callback_query(call.id, 'Successfully Added ' + str(action) + ' to your list')
 
     elif task == 'done':
+        if action.endswith('✅'):
+            bot.answer_callback_query(call.id, "You cant finish juz twice!")
+            return
         juz.done_reading(int(action))
         bot.answer_callback_query(call.id, 'Congrats! May Allah bless your efforts')
 
     elif task == 'drop':
+        if action.endswith('✅'):
+            bot.answer_callback_query(call.id, "You can't drop juz you have already read!")
+            return
         juz.drop_user(int(action))
         bot.answer_callback_query(call.id, 'Successfully Dropped the ' + str(action) + ' juz from your list')
         bot.send_message(SUPER_ADMIN_ID, 'The user ' + str(call.from_user.username) + ' dropped the juz ' + str(action))
@@ -396,10 +435,6 @@ def callback_query(call):
     field = words[0]
     task = words[1]
     action = words[2]
-    # for number in range(1, 31):
-    #     if words[1] == str(number):
-    #         juz.add_user(int(number), call.from_user.username)
-    #         bot.answer_callback_query(call.id, 'Successfully added '+str(number)+' to your list')
     if field == 'juz':
         callback_juz(call, task, action)
 
@@ -412,8 +447,10 @@ def callback_query(call):
 
 @bot.message_handler(func=lambda message: True)
 def message_handler(message):
+    print(message.chat.type)
+    if not message.chat.type == 'private':
+        return
     # Buttons to Buttons
-
     if message.text == 'Read Quran':
         bot.send_message(message.chat.id, "Choose which action you want to perform",
                          reply_markup=keyboard.read_quran_keyboard())
@@ -437,15 +474,25 @@ def message_handler(message):
                          reply_markup=keyboard.add_juz_keyboard())
 
     elif message.text == 'drop juz':
-        bot.send_message(message.chat.id, "Choose which juz you want to drop",
-                         reply_markup=keyboard.drop_juz_keyboard(message.from_user.username))
+        if len(juz.generate_my_list(message.from_user.username)) > 0:
+            bot.send_message(message.chat.id, "Choose which juz you want to drop",
+                             reply_markup=keyboard.drop_juz_keyboard(message.from_user.username))
+        else:
+            bot.send_message(message.chat.id, "Your list is empty, firstly you should add juz to your list")
 
     elif message.text == 'done juz':
-        bot.send_message(message.chat.id, "Choose which juz you have finished reading",
-                         reply_markup=keyboard.done_juz_keyboard(message.from_user.username))
+        if len(juz.generate_my_list(message.from_user.username)) > 0:
+            bot.send_message(message.chat.id, "Choose which juz you have finished reading",
+                             reply_markup=keyboard.done_juz_keyboard(message.from_user.username))
+        else:
+            bot.send_message(message.chat.id, "Your list is empty, firstly you should add juz to your list")
 
     elif message.text == 'Show List':
-        bot.send_message(message.chat.id, juz.show_all())
+        message_text = '#hatm'+str(hatm_counter)+'\n\n'
+        if deadline.check_deadline():
+            message_text += str(deadline.get_deadline())+'\n\n'
+        message_text += juz.show_all()
+        bot.send_message(message.chat.id, message_text)
 
     elif message.text == 'Show Deadline':
         if not deadline.check_deadline():
@@ -464,9 +511,9 @@ def message_handler(message):
         start_command(message)
 
     elif message.text == 'Set Deadline':
-        message_text = 'The admin did not finished this part. You can use /set_deadline command instead. For example ' \
-                       '</set_deadline ' + str(deadline.today().day) + ' ' + str(deadline.today().month) + ' ' + str(
-                        deadline.today().year) + '>'
+        message_text = 'The admin did not finished this part. You can use /set_deadline command instead. For ' \
+                       'example </set_deadline ' + str(deadline.today().day) + ' ' + str(
+                        deadline.today().month) + ' ' + str(deadline.today().year) + '>'
         bot.send_message(message.chat.id, message_text)
 
     elif message.text == 'Remove Deadline':
@@ -479,6 +526,8 @@ def message_handler(message):
 
     else:
         bot.send_message(message.chat.id, "Something went wrong!")
+    if admins.check_admin(message.from_user.id):
+        pass
 
 
 bot.polling()

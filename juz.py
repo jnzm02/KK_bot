@@ -82,3 +82,17 @@ def free_juz():
                 my_list.append(str(juz_number))
 
     return my_list
+
+
+def clean_all():
+    for juz_number in range(1, 31):
+        juz_dict[juz_number] = ["", False]
+
+
+def generate_user_id_list():
+    my_list = []
+    for juz_number, is_free in juz_dict.items():
+        if is_free[1]:
+            my_list.append(is_free[0])
+    print(my_list)
+    return list(dict.fromkeys(my_list))
