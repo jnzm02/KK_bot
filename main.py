@@ -1,8 +1,7 @@
+import pytz
 import telebot
-import sqlite3
 from decouple import config
-# from apscheduler.schedulers.blocking import BlockingScheduler
-# from apscheduler.schedulers.asyncio import AsyncIOScheduler
+from apscheduler.schedulers.blocking import BlockingScheduler
 
 # local
 import admins
@@ -14,22 +13,19 @@ import keyboard
 API_KEY = config('API_KEY')
 general_chat_id = config('KK_bot_hatym_bot_test_chat')
 SUPER_ADMIN_ID = int(config('SUPER_ADMIN_ID'))
-hatm_counter = 1
-
-
 bot = telebot.TeleBot(API_KEY)
 
 
 def send_evening_notification():
     if not deadline.check_new_deadline():
         deadline.set_deadline(deadline.today().day, deadline.today().month, deadline.today().year)
-    message_text = "Today's Updates for Quran Hatim: " + str(deadline.get_deadline()) + '\n'
+    message_text = "Today's Updates for Quran Hatim: \n" + str(deadline.get_deadline()) + '\n'
     message_text += juz.show_all()
     bot.send_message(general_chat_id, message_text)
 
 
 # scheduler = BlockingScheduler(timezone=pytz.timezone('Asia/Almaty'))
-# scheduler.add_job(send_evening_notification, trigger='cron', hour=18, minute=27)
+# scheduler.add_job(send_evening_notification, trigger='cron', hour=20, minute=0)
 # scheduler.start()
 
 
@@ -38,14 +34,10 @@ def completed_hatm_command(message):
     if not admins.check_admin(message.from_user.id):
         return
 
-    # for user_id in juz.generate_user_id_list():
-    #     bot.send_message(user_id, "You've show a great work in reading Quran. May Allah bless your efforts")
     juz.clean_all()
     deadline.clean_all()
-    global hatm_counter
-    hatm_counter += 1
-    bot.send_message(general_chat_id, "Congrats, we have finished reading our " + str(hatm_counter) + "hatm. "
-                                      "Thank you for everyone who engaged in this. May Allah bless your efforts")
+    bot.send_message(general_chat_id, "Congrats, we have finished reading our hatm. "
+                                      "Thanks for everyone who engaged in this. May Allah bless your efforts")
 
 
 @bot.message_handler(commands=['start_hatm'])
@@ -55,7 +47,8 @@ def start_hatm_command(message):
 
     juz.clean_all()
     deadline.clean_all()
-    bot.send_message(general_chat_id, "You started new hatm, do not hesitate to read Quran. May Allah bless your efforts")
+    bot.send_message(general_chat_id,
+                     "You started new hatm, do not hesitate to read Quran. May Allah bless your efforts")
 
 
 @bot.message_handler(commands=['start'])
@@ -63,32 +56,29 @@ def start_command(message):
     message_text = "Hello to the Team, " \
                    "This bot is created to make the process of reading Quran more comfortable with your peers." \
                    "The bot will monitor the process of reading Quran"
-    bot.send_message(message.chat.id, message_text)
-
     if message.chat.type == 'private':
-        bot.send_message(message.chat.id, "Hello, to the team", reply_markup=keyboard.start_keyboard())
+        bot.send_message(message.chat.id, message_text, reply_markup=keyboard.start_keyboard())
 
 
 @bot.message_handler(commands=['free_juz'])
 def show_free_juz_command(message):
-    free_juz_list = juz.free_juz_list()
-
-    bot.send_message(message.chat.id, "The list of free juz:\n" + free_juz_list)
+    if message.chat.type == 'private':
+        bot.send_message(message.chat.id, "The list of free juz:\n" + juz.free_juz_list())
 
 
 @bot.message_handler(commands=['my_list'])
 def my_list_command(message):
-    if len(juz.generate_my_list(message.from_user.username)) > 0:
-        my_list = juz.get_my_list(message.from_user.username)
-        bot.send_message(message.chat.id, "Your list:\n" + my_list)
-    else:
-        bot.send_message(message.chat.id, "Your list is empty")
+    if message.chat.type == 'private':
+        if len(juz.generate_my_list(message.from_user.username)) > 0:
+            my_list = juz.get_my_list(message.from_user.username)
+            bot.send_message(message.chat.id, "Your list:\n" + my_list)
+        else:
+            bot.send_message(message.chat.id, "Your list is empty")
 
 
 @bot.message_handler(commands=['set_deadline'])
 def set_deadline_command(message):
     if not admins.check_admin(message.from_user.id):
-        bot.send_message(message.chat.id, "You are not admin")
         return
 
     data = tools.extract_arg(message.text)
@@ -116,7 +106,6 @@ def set_deadline_command(message):
 @bot.message_handler(commands=['extend_deadline'])
 def extend_deadline_command(message):
     if not admins.check_admin(message.from_user.id):
-        bot.send_message(message.chat.id, "You are not allowed to call this command")
         return
 
     data = tools.extract_arg(message.text)
@@ -142,7 +131,6 @@ def extend_deadline_command(message):
 @bot.message_handler(commands=['remove_deadline'])
 def remove_deadline_command(message):
     if not admins.check_admin(message.from_user.id):
-        bot.send_message(message.chat.id, "You are not allowed to call this command")
         return
 
     deadline.remove_deadline()
@@ -151,8 +139,7 @@ def remove_deadline_command(message):
 
 @bot.message_handler(commands=['check_deadline'])
 def check_deadline_command(message):
-    if not admins.check_admin(message.from_user.id):
-        bot.send_message(message.chat.id, "You are not allowed to call this command")
+    if message.chat.type != 'private' and not admins.check_admin(message.from_user.id):
         return
 
     if not deadline.check_deadline():
@@ -164,6 +151,9 @@ def check_deadline_command(message):
 
 @bot.message_handler(commands=['add'])
 def add_to_mylist(message):
+    if message.chat.type != 'private' and not admins.check_admin(message.from_user.id):
+        return
+
     data = tools.extract_arg(message.text)
 
     if not tools.check_has_arg(data):
@@ -203,12 +193,18 @@ def add_to_mylist(message):
 
 @bot.message_handler(commands=['all'])
 def show_all_juz(message):
+    if message.chat.type != 'private' and not admins.check_admin(message.from_user.id):
+        return
+
     message_text = juz.show_all()
     bot.send_message(message.chat.id, message_text)
 
 
 @bot.message_handler(commands=['done'])
 def done_reading_juz(message):
+    if message.chat.type != 'private' and not admins.check_admin(message.from_user.id):
+        return
+
     data = tools.extract_arg(message.text)
 
     if not tools.check_has_arg(data):
@@ -244,6 +240,9 @@ def done_reading_juz(message):
 
 @bot.message_handler(commands=["drop"])
 def drop_user(message):
+    if message.chat.type != 'private' and not admins.check_admin(message.from_user.id):
+        return
+
     data = tools.extract_arg(message.text)
 
     if not tools.check_has_arg(data):
@@ -280,7 +279,6 @@ def drop_user(message):
 @bot.message_handler(commands=['set_main_chat'])
 def set_main_chat(message):
     if not message.from_user.id == SUPER_ADMIN_ID:
-        bot.send_message(message.chat.id, "You are not allowed to call this command")
         return
 
     global general_chat_id
@@ -290,6 +288,9 @@ def set_main_chat(message):
 
 @bot.message_handler(commands=['super_admin_status'])
 def super_admin_status_command(message):
+    if message.chat.type != 'private' and not admins.check_admin(message.from_user.id):
+        return
+
     if admins.check_super_admin(message.from_user.id):
         bot.send_message(message.chat.id, "Yes you are super admin")
     else:
@@ -298,6 +299,9 @@ def super_admin_status_command(message):
 
 @bot.message_handler(commands=['check_chat'])
 def check_chat_command(message):
+    if message.chat.type != 'private' and not admins.check_admin(message.from_user.id):
+        return
+
     if not admins.check_admin(message.from_user.id):
         bot.send_message(message.chat.id, "You are not allowed to call this command")
         return
@@ -307,6 +311,9 @@ def check_chat_command(message):
 
 @bot.message_handler(commands=['request_to_become_admin'])
 def request_to_admin_command(message):
+    if message.chat.type != 'private' and not admins.check_admin(message.from_user.id):
+        return
+
     if admins.exists_in_black_list(message.from_user.id):
         bot.send_message(message.chat.id, "You are in black list. Contact SuperAdmin")
         return
@@ -329,6 +336,9 @@ def request_to_admin_command(message):
 
 @bot.message_handler(commands=['approve_admin'])
 def approve_user(message):
+    if message.chat.type != 'private' and not admins.check_admin(message.from_user.id):
+        return
+
     data = tools.extract_arg(message.text)
     user_id = data[0]
 
@@ -348,6 +358,9 @@ def approve_user(message):
 
 @bot.message_handler(commands=['remove'])
 def remove_admin(message):
+    if message.chat.type != 'private' and not admins.check_admin(message.from_user.id):
+        return
+
     data = tools.extract_arg(message.text)
     user_id = data[0]
 
@@ -369,6 +382,9 @@ def remove_admin(message):
 
 @bot.message_handler(commands=['admins'])
 def admins_list_command(message):
+    # if message.chat.type != 'private' and not admins.check_admin(message.from_user.id):
+    #     return
+
     if not admins.check_super_admin(message.from_user.id):
         bot.send_message(message.chat.id, "You are not Super Admin")
         return
@@ -378,6 +394,9 @@ def admins_list_command(message):
 
 @bot.message_handler(commands=['admin_status'])
 def check_if_admin_command(message):
+    if message.chat.type != 'private' and not admins.check_admin(message.from_user.id):
+        return
+
     if admins.check_admin(message.from_user.id):
         bot.send_message(message.chat.id, "You are admin")
     else:
@@ -386,6 +405,9 @@ def check_if_admin_command(message):
 
 @bot.message_handler(commands=['waiting_list'])
 def show_waiting_list_command(message):
+    if message.chat.type != 'private' and not admins.check_admin(message.from_user.id):
+        return
+
     if not admins.check_super_admin(message.from_user.id):
         bot.send_message(message.chat.id, "You are not allowed to call this command")
         return
@@ -395,6 +417,9 @@ def show_waiting_list_command(message):
 
 @bot.message_handler(commands=['black_list'])
 def show_black_list(message):
+    if message.chat.type != 'private' and not admins.check_admin(message.from_user.id):
+        return
+
     if not admins.check_super_admin(message.from_user.id):
         bot.send_message(message.chat.id, "You are not allowed to call this command")
         return
@@ -425,8 +450,11 @@ def callback_juz(call, task, action):
 
 def callback_deadline(call, task, action):
     if task == 'extend_deadline':
-        deadline.extend_deadline(int(action))
-        bot.answer_callback_query(call.id, "Deadline is extended for " + action + ' days')
+        if admins.check_admin(call.from_user.id):
+            deadline.extend_deadline(int(action))
+            bot.answer_callback_query(call.id, "Deadline is extended for " + action + ' days')
+        else :
+            bot.answer_callback_query(call.id, "You are not allowed to extend deadline")
 
 
 @bot.callback_query_handler(func=lambda call: True)
@@ -441,15 +469,12 @@ def callback_query(call):
     if field == 'deadline':
         callback_deadline(call, task, action)
 
-    else:
-        bot.answer_callback_query(call.id, 'Something went WRONG!')
-
 
 @bot.message_handler(func=lambda message: True)
 def message_handler(message):
-    print(message.chat.type)
     if not message.chat.type == 'private':
         return
+
     # Buttons to Buttons
     if message.text == 'Read Quran':
         bot.send_message(message.chat.id, "Choose which action you want to perform",
@@ -488,7 +513,7 @@ def message_handler(message):
             bot.send_message(message.chat.id, "Your list is empty, firstly you should add juz to your list")
 
     elif message.text == 'Show List':
-        message_text = '#hatm'+str(hatm_counter)+'\n\n'
+        message_text = '#hatm'+'\n\n'
         if deadline.check_deadline():
             message_text += str(deadline.get_deadline())+'\n\n'
         message_text += juz.show_all()

@@ -7,6 +7,7 @@ for juz in range(1, 31):
 
 
 def make_empty():
+    global juz_dict
     for is_free in juz_dict.values():
         is_free = ["", False]
 
