@@ -1,7 +1,5 @@
-import pytz
 import telebot
 from decouple import config
-from apscheduler.schedulers.blocking import BlockingScheduler
 
 # local
 import admins
@@ -16,17 +14,11 @@ SUPER_ADMIN_ID = int(config('SUPER_ADMIN_ID'))
 bot = telebot.TeleBot(API_KEY)
 
 
-def send_evening_notification():
-    if not deadline.check_new_deadline():
-        deadline.set_deadline(deadline.today().day, deadline.today().month, deadline.today().year)
-    message_text = "Today's Updates for Quran Hatim: \n" + str(deadline.get_deadline()) + '\n'
-    message_text += juz.show_all()
-    bot.send_message(general_chat_id, message_text)
-
-
-# scheduler = BlockingScheduler(timezone=pytz.timezone('Asia/Almaty'))
-# scheduler.add_job(send_evening_notification, trigger='cron', hour=20, minute=0)
-# scheduler.start()
+@bot.message_handler(commands=['send_evening_notification'])
+def send_evening_notification_command(message):
+    if not admins.check_admin(message.from_user.id):
+        return
+    bot.send_message(general_chat_id, juz.show_all())
 
 
 @bot.message_handler(commands=['completed_hatm'])
@@ -453,7 +445,7 @@ def callback_deadline(call, task, action):
         if admins.check_admin(call.from_user.id):
             deadline.extend_deadline(int(action))
             bot.answer_callback_query(call.id, "Deadline is extended for " + action + ' days')
-        else :
+        else:
             bot.answer_callback_query(call.id, "You are not allowed to extend deadline")
 
 
@@ -513,9 +505,9 @@ def message_handler(message):
             bot.send_message(message.chat.id, "Your list is empty, firstly you should add juz to your list")
 
     elif message.text == 'Show List':
-        message_text = '#hatm'+'\n\n'
+        message_text = '#hatm' + '\n\n'
         if deadline.check_deadline():
-            message_text += str(deadline.get_deadline())+'\n\n'
+            message_text += str(deadline.get_deadline()) + '\n\n'
         message_text += juz.show_all()
         bot.send_message(message.chat.id, message_text)
 

@@ -16,8 +16,8 @@ def set_deadline(day, month, year):
 
 
 def till_deadline():
-    delta = deadline - datetime.datetime.today()
-    return delta.days
+    temp = deadline - datetime.datetime.today()
+    return temp.days
 
 
 def get_deadline():
