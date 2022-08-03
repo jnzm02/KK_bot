@@ -1,3 +1,4 @@
+import dbhelper
 import tools
 
 juz_dict = {}
@@ -45,6 +46,7 @@ def generate_my_list(username):
 
 
 def get_my_list(username):
+    dbhelper.get_my_list(username)
     return tools.show_list(generate_my_list(username))
 
 
@@ -64,6 +66,7 @@ def check_mine(juz_number, username):
 
 
 def add_user(juz_number, username):
+    dbhelper.add_juz(juz_number, username)
     juz_dict[juz_number][0] = str(username)
 
 

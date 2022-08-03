@@ -1,4 +1,5 @@
 import datetime
+import dbhelper
 
 deadline = datetime.datetime(2022, 1, 1, 20, 0, 0)
 default_deadline = datetime.datetime(2022, 1, 1, 20, 0, 0)
@@ -12,6 +13,7 @@ def set_deadline(day, month, year):
     global deadline
     new_deadline = datetime.datetime(int(year), int(month), int(day), 20, 0, 0)
     deadline = new_deadline
+    dbhelper.set_deadline(day, month, year)
     del new_deadline
 
 
@@ -21,6 +23,8 @@ def till_deadline():
 
 
 def get_deadline():
+    db_deadline = dbhelper.get_deadline()
+    print("deadline command: {}\n".format(db_deadline))
     return '⏰ '+str(deadline)
 
 

@@ -1,12 +1,15 @@
 import telebot
 from decouple import config
 
+import psycopg2
+
 # local
 import admins
 import deadline
 import juz
 import tools
 import keyboard
+import dbhelper
 
 API_KEY = config('API_KEY')
 general_chat_id = config('KK_bot_hatym_bot_test_chat')
@@ -270,7 +273,7 @@ def drop_user(message):
 
 @bot.message_handler(commands=['set_main_chat'])
 def set_main_chat(message):
-    if not message.from_user.id == SUPER_ADMIN_ID:
+    if not admins.check_super_admin(message.from_user.id):
         return
 
     global general_chat_id
@@ -512,10 +515,10 @@ def message_handler(message):
         bot.send_message(message.chat.id, message_text)
 
     elif message.text == 'Show Deadline':
-        if not deadline.check_deadline():
-            bot.send_message(message.chat.id, "You did not set deadline")
-        else:
-            bot.send_message(message.chat.id, deadline.get_deadline(), reply_markup=keyboard.deadline_keyboard())
+        # if not deadline.check_deadline():
+        #     bot.send_message(message.chat.id, "You did not set deadline")
+        # else:
+        bot.send_message(message.chat.id, deadline.get_deadline(), reply_markup=keyboard.deadline_keyboard())
 
     elif message.text == 'Extend Deadline':
         if not deadline.check_deadline():

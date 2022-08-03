@@ -28,4 +28,3 @@ def split_callback_data(data):
     return words
 
 
-
