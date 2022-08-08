@@ -107,7 +107,7 @@ def set_default_deadline():
 
 
 def free_juz():
-    cursor.execute("SELECT * FROM juz where is_done = False")
+    cursor.execute("SELECT * FROM juz where user_id = '-1' and is_done = False")
     return tools.get_juz(sorted(cursor.fetchall()))
 
 

@@ -308,24 +308,37 @@ def check_if_admin_command(message):
 
 
 def callback_juz(call, task, action):
+    juz_number = int(action)
     if task == 'add':
-        dbhelper.add_juz(int(action), call.from_user)
-        bot.answer_callback_query(call.id, 'Successfully Added ' + str(action) + ' to your list')
+        if dbhelper.check_read(juz_number):
+            bot.send_message(call.id, "This juz is already read!")
+            return
+
+        if dbhelper.check_mine(juz_number, call.from_user):
+            bot.send_message(call.id, "This juz is already yours")
+            return
+
+        if not dbhelper.check_free(juz_number):
+            bot.send_message(call.id, "This juz is taken by other user!")
+            return
+
+        dbhelper.add_juz(juz_number, call.from_user)
+        bot.answer_callback_query(call.id, 'Successfully Added ' + action + ' to your list')
 
     elif task == 'done':
         if action.endswith('✅'):
             bot.answer_callback_query(call.id, "You cant finish juz twice!")
             return
-        dbhelper.done_reading(int(action))
+        dbhelper.done_reading(juz_number)
         bot.answer_callback_query(call.id, 'Congrats! May Allah bless your efforts')
 
     elif task == 'drop':
         if action.endswith('✅'):
             bot.answer_callback_query(call.id, "You can't drop juz you have already read!")
             return
-        dbhelper.drop_user(int(action))
-        bot.answer_callback_query(call.id, 'Successfully Dropped the ' + str(action) + ' juz from your list')
-        bot.send_message(SUPER_ADMIN_ID, 'The user ' + str(call.from_user.username) + ' dropped the juz ' + str(action))
+        dbhelper.drop_user(juz_number)
+        bot.answer_callback_query(call.id, 'Successfully Dropped the ' + action + ' juz from your list')
+        bot.send_message(SUPER_ADMIN_ID, 'The user ' + str(call.from_user.username) + ' dropped the juz ' + action)
 
 
 def callback_deadline(call, task, action):
