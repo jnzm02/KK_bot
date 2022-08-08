@@ -1,4 +1,4 @@
-import admins
+import dbhelper
 
 
 def extract_arg(arg):
@@ -14,13 +14,8 @@ def show_list(my_list):
         return "List is empty"
     the_list = ""
     for item in my_list:
-        the_list += item + '\n'
-
+        the_list += str(item) + '\n'
     return the_list
-
-
-def extract_date(arg):
-    return arg.split('.')
 
 
 def split_callback_data(data):
@@ -28,3 +23,27 @@ def split_callback_data(data):
     return words
 
 
+def get_juz(cursor) -> list:
+    temp_list = []
+    for juz in cursor:
+        if juz[2]:
+            temp_list.append(str(juz[0])+'✅')
+        else:
+            temp_list.append(str(juz[0]))
+
+    return temp_list
+
+
+def show_all():
+    db_juz = dbhelper.show_all()
+    sorted(db_juz)
+    my_list = []
+    for juz in db_juz:
+        user = juz[3]
+        if juz[3] == 'NULL_USER':
+            user = ''
+        if juz[2]:
+            my_list.append("◦ "+str(juz[0]) + ": " + user+'✅')
+        else:
+            my_list.append("◦ "+str(juz[0]) + ": " + user)
+    return show_list(my_list)

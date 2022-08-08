@@ -1,56 +1,31 @@
 import datetime
 import dbhelper
 
-deadline = datetime.datetime(2022, 1, 1, 20, 0, 0)
-default_deadline = datetime.datetime(2022, 1, 1, 20, 0, 0)
-
 
 def check_deadline():
-    return not deadline == datetime.datetime(2022, 1, 1, 20, 0, 0)
-
-
-def set_deadline(day, month, year):
-    global deadline
-    new_deadline = datetime.datetime(int(year), int(month), int(day), 20, 0, 0)
-    deadline = new_deadline
-    dbhelper.set_deadline(day, month, year)
-    del new_deadline
-
-
-def till_deadline():
-    temp = deadline - datetime.datetime.today()
-    return temp.days
-
-
-def get_deadline():
-    db_deadline = dbhelper.get_deadline()
-    print("deadline command: {}\n".format(db_deadline))
-    return '⏰ '+str(deadline)
-
-
-def clean_all():
-    remove_deadline()
-
-
-def check_new_deadline():
-    if deadline < datetime.datetime.today() or deadline == default_deadline:
+    data = dbhelper.get_deadline()
+    if data[0] == 1 and data[1] == 1 and data[2] == 2022:
         return False
-
     return True
 
 
-def remove_deadline():
-    global deadline
-    deadline = default_deadline
+def till_deadline():
+    date = dbhelper.get_deadline()
+    db_deadline = datetime.datetime(date[2], date[1], date[0], 20, 0, 0)
+    return (db_deadline - datetime.datetime.today()).days
+
+
+def get_deadline():
+    data = dbhelper.get_deadline()
+    db_deadline = datetime.datetime(data[2], data[1], data[0], 20, 0, 0)
+    return '⏰ '+str(db_deadline)
 
 
 def extend_deadline(days):
-    global deadline
-    deadline = deadline + datetime.timedelta(days=days)
-
-
-def today():
-    return datetime.date.today()
+    data = dbhelper.get_deadline()
+    db_deadline = datetime.datetime(data[2], data[1], data[0], 20, 0, 0)
+    new_deadline = db_deadline + datetime.timedelta(days=days)
+    dbhelper.set_deadline(new_deadline.day, new_deadline.month, new_deadline.year)
 
 
 def check_date(day, month, year):
@@ -58,5 +33,4 @@ def check_date(day, month, year):
         datetime.datetime(int(year), int(month), int(day))
     except ValueError:
         return False
-
     return True

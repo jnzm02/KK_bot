@@ -3,7 +3,7 @@ from telebot.types import (
     InlineKeyboardMarkup, InlineKeyboardButton
 )
 
-import juz
+import dbhelper
 
 
 def start_keyboard():
@@ -55,15 +55,15 @@ def extend_deadline_keyboard():
 
 
 def add_juz_keyboard():
-    return generate_juz_keyboard(juz.free_juz(), 'add')
+    return generate_juz_keyboard(dbhelper.free_juz(), 'add')
 
 
 def drop_juz_keyboard(username):
-    return generate_juz_keyboard(juz.generate_my_list(username), 'drop')
+    return generate_juz_keyboard(dbhelper.generate_my_list(username), 'drop')
 
 
 def done_juz_keyboard(username):
-    return generate_juz_keyboard(juz.generate_my_list(username), 'done')
+    return generate_juz_keyboard(dbhelper.generate_my_list(username), 'done')
 
 
 def generate_juz_keyboard(my_list, task):
