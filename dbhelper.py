@@ -59,8 +59,10 @@ def clean_all():
 
 
 def check_read(juz_number) -> bool:
-    cursor.execute("SELECT * FROM juz WHERE juz_number={} and is_done = True".format(juz_number))
-    return len(cursor.fetchall()) > 0  # return true if the juz already read
+    cursor.execute("SELECT * FROM juz WHERE juz_number={}".format(juz_number))
+    data = cursor.fetchall()[0]
+    print(data)
+    return data[2]  # return true if the juz already read
 
 
 def set_deadline(day, month, year):
@@ -85,9 +87,12 @@ def get_deadline() -> list:
 
 
 def add_new_user(user):
+    username = user.username
+    if username is None:
+        username = user.first_name + user.second_name
     cursor.execute(
-        "INSERT INTO accounts VALUES ('{}', '{}', false) "
-        "ON conflict (user_id) DO NOTHING;".format(user.id, user.username))
+        "INSERT INTO accounts VALUES ('{user_id}', '{username}', false) ON conflict (user_id) "
+        "DO UPDATE SET username = '{username}'".format(user_id=user.id, username=username))
     connection.commit()
 
 
@@ -114,3 +119,23 @@ def free_juz():
 def generate_my_list(user):
     cursor.execute("SELECT * FROM juz where user_id='{}'".format(user.id))
     return tools.get_juz(sorted(cursor.fetchall()))
+
+
+def get_general_chat_id():
+    cursor.execute("SELECT * FROM general_chat")
+    return cursor.fetchall()[0][0]
+
+
+def set_general_chat(chat_id):
+    cursor.execute("UPDATE general_chat SET general_chat_id = '{}'".format(chat_id))
+    connection.commit()
+
+
+def completed_hatym():
+    cursor.execute("UPDATE hatym_counter SET haym_number=hatym_number+1")
+    connection.commit()
+
+
+def get_hatym_number():
+    cursor.execute("SELECT * FROM hatym_counter")
+    return cursor.fetchall()[0][0]

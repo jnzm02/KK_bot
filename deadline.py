@@ -18,6 +18,8 @@ def till_deadline():
 def get_deadline():
     data = dbhelper.get_deadline()
     db_deadline = datetime.datetime(data[2], data[1], data[0], 20, 0, 0)
+    # month_name = str(datetime.datetime.strptime(str(db_deadline.month), "%m"))
+    # return '⏰ ' + str(db_deadline.day) + month_name + str(db_deadline.year)
     return '⏰ '+str(db_deadline)
 
 

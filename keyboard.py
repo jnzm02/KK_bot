@@ -17,6 +17,15 @@ def start_keyboard():
     return keyboard
 
 
+def start_user_keyboard():
+    keyboard = ReplyKeyboardMarkup(row_width=2, resize_keyboard=True)
+    keyboard.add(
+        KeyboardButton("Read Quran"),
+        KeyboardButton("Show Deadline"),
+        KeyboardButton("Show List"),
+    )
+
+
 def read_quran_keyboard():
     keyboard = ReplyKeyboardMarkup(row_width=2, resize_keyboard=True)
     keyboard.add(

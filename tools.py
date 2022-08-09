@@ -9,11 +9,20 @@ def check_has_arg(arg):
     return not len(arg) == 0
 
 
-def show_list(my_list):
-    if len(my_list) == 0:
+def show_free_juz_list(temp_list):
+    if len(temp_list) == 0:
+        return "List is empty"
+    the_list = "*"
+    for juz_number in temp_list:
+        the_list += str(juz_number) + ' '
+    return the_list+'*'
+
+
+def show_list(temp_list):
+    if len(temp_list) == 0:
         return "List is empty"
     the_list = ""
-    for item in my_list:
+    for item in temp_list:
         the_list += str(item) + '\n'
     return the_list
 

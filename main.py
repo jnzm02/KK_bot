@@ -7,9 +7,9 @@ import deadline
 import tools
 import keyboard
 import dbhelper
+import messages
 
 API_KEY = config('API_KEY')
-general_chat_id = config('KK_bot_hatym_bot_test_chat')
 SUPER_ADMIN_ID = int(config('SUPER_ADMIN_ID'))
 bot = telebot.TeleBot(API_KEY)
 
@@ -17,18 +17,18 @@ bot = telebot.TeleBot(API_KEY)
 @bot.message_handler(commands=['start'])
 def start_command(message):
     dbhelper.add_new_user(message.from_user)
-    message_text = "Hello to the Team, " \
-                   "This bot is created to make the process of reading Quran more comfortable with your peers." \
-                   "The bot will monitor the process of reading Quran"
     if message.chat.type == 'private':
-        bot.send_message(message.chat.id, message_text, reply_markup=keyboard.start_keyboard())
+        bot.send_message(message.chat.id, messages.start_command(), reply_markup=keyboard.start_keyboard())
 
 
 @bot.message_handler(commands=['send_evening_notification'])
 def send_evening_notification_command(message):
     if not dbhelper.check_admin(message.from_user):
         return
-    bot.send_message(general_chat_id, tools.show_all())
+    message_text = '#hatm' + str(dbhelper.get_hatym_number()) + '\n\n'
+    if deadline.check_deadline():
+        message_text += str(deadline.get_deadline()) + '\n\n'
+    bot.send_message(dbhelper.get_general_chat_id(), message_text+tools.show_all())
 
 
 @bot.message_handler(commands=['completed_hatm'])
@@ -36,10 +36,10 @@ def completed_hatm_command(message):
     if not dbhelper.check_admin(message.from_user):
         return
 
+    dbhelper.completed_hatym()
     dbhelper.clean_all()
     dbhelper.set_default_deadline()
-    bot.send_message(general_chat_id, "Congrats, we have finished reading our hatm. "
-                                      "Thanks for everyone who engaged in this. May Allah bless your efforts")
+    bot.send_message(dbhelper.get_general_chat_id(), messages.completed_hatym())
 
 
 @bot.message_handler(commands=['free_juz'])
@@ -47,7 +47,7 @@ def show_free_juz_command(message):
     if message.chat.type != 'private' and not dbhelper.check_admin(message.from_user):
         return
 
-    bot.send_message(message.chat.id, "The list of free juz:\n" + tools.show_list(dbhelper.free_juz()))
+    bot.send_message(message.chat.id, messages.free_juz_list(), parse_mode='Markdown')
 
 
 @bot.message_handler(commands=['my_list'])
@@ -161,19 +161,19 @@ def add_to_mylist(message):
         return
 
     if dbhelper.check_read(juz_number):
-        bot.send_message(message.chat.id, "This juz is already read!")
+        bot.send_message(message.chat.id, messages.juz_is_read())
         return
 
     if dbhelper.check_mine(juz_number, message.from_user):
-        bot.send_message(message.chat.id, "This juz is already yours")
+        bot.send_message(message.chat.id, messages.warning_add_my_juz())
         return
 
     if not dbhelper.check_free(juz_number):
-        bot.send_message(message.chat.id, "This juz is taken by other user!")
+        bot.send_message(message.chat.id, messages.warning_add_others_juz())
         return
 
     dbhelper.add_juz(juz_number, message.from_user)
-    bot.send_message(message.chat.id, "Juz has added to your list\nPlease finish reading till the deadline")
+    bot.send_message(message.chat.id, messages.juz_successfully_added_to_your_list())
 
 
 @bot.message_handler(commands=['all'])
@@ -211,16 +211,16 @@ def done_reading_juz(message):
         return
 
     if dbhelper.check_read(juz_number):
-        bot.send_message(message.chat.id, "This juz is already read!")
+        bot.send_message(message.chat.id, messages.juz_is_read())
         return
 
     if not dbhelper.check_mine(juz_number, message.from_user):
-        bot.send_message(message.chat.id, "This juz is not yours")
+        bot.send_message(message.chat.id, messages.juz_is_not_yours())
         return
 
     else:
         dbhelper.done_reading(juz_number)
-        bot.send_message(message.chat.id, "Congrats keep going! May Allah bless your efforts!")
+        bot.send_message(message.chat.id, messages.done_reading())
 
 
 @bot.message_handler(commands=["drop"])
@@ -248,17 +248,17 @@ def drop_user(message):
         return
 
     if not dbhelper.check_mine(juz_number, message.from_user):
-        bot.send_message(message.chat.id, "You can't drop this juz cause it is not yours")
+        bot.send_message(message.chat.id, messages.warning_drop_others_juz())
         return
 
     if dbhelper.check_read(juz_number):
-        bot.send_message(message.chat.id, "You can't drop the juz you have already read!")
+        bot.send_message(message.chat.id, messages.warning_drop_read_juz())
         return
 
     dbhelper.drop_user(juz_number)
 
     bot.send_message(SUPER_ADMIN_ID, str(message.from_user.username) + ' has dropped ' + str(juz_number) + ' juz')
-    bot.send_message(message.chat.id, "Successfully dropped the juz")
+    bot.send_message(message.chat.id, messages.success_drop_juz())
 
 
 @bot.message_handler(commands=['super_admin_status'])
@@ -272,16 +272,32 @@ def super_admin_status_command(message):
         bot.send_message(message.chat.id, "No you are not super admin")
 
 
-@bot.message_handler(commands=['check_chat'])
-def check_chat_command(message):
-    # if message.chat.type != 'private' and not admins.check_admin(message.from_user):
-    #     return
-
-    if not dbhelper.check_admin(message.from_user.id):
-        bot.send_message(message.chat.id, "You are not allowed to call this command")
+@bot.message_handler(commands=['set_general_chat'])
+def set_general_chat(message):
+    if not dbhelper.check_admin(message.from_user):
         return
 
-    bot.send_message(general_chat_id, "This is a general chat")
+    if message.chat.type != 'group':
+        return
+
+    if str(message.from_user.id) != str(SUPER_ADMIN_ID):
+        bot.send_message(message.chat.id, "You are not allowed to call this command!")
+        return
+
+    dbhelper.set_general_chat(message.chat.id)
+    bot.send_message(message.chat.id, "Successfully set main chat"+str(message.chat.title))
+
+
+@bot.message_handler(commands=['check_chat'])
+def check_chat_command(message):
+    if message.chat.type != 'group':
+        return
+
+    if not dbhelper.check_admin(message.from_user):
+        bot.send_message(message.chat.id, messages.not_allowed_to_call())
+        return
+
+    bot.send_message(message.chat.id, "This is a general chat")
 
 
 @bot.message_handler(commands=['admins'])
@@ -308,36 +324,44 @@ def check_if_admin_command(message):
 
 
 def callback_juz(call, task, action):
-    juz_number = int(action)
     if task == 'add':
+        if action.endswith('✅'):
+            bot.answer_callback_query(call.id, messages.juz_is_read())
+            return
+
+        juz_number = int(action)
         if dbhelper.check_read(juz_number):
-            bot.send_message(call.id, "This juz is already read!")
+            bot.send_message(call.id, messages.juz_is_read())
             return
 
         if dbhelper.check_mine(juz_number, call.from_user):
-            bot.send_message(call.id, "This juz is already yours")
+            bot.send_message(call.id, messages.warning_add_my_juz())
             return
 
         if not dbhelper.check_free(juz_number):
-            bot.send_message(call.id, "This juz is taken by other user!")
+            bot.send_message(call.id, messages.warning_add_others_juz())
             return
 
         dbhelper.add_juz(juz_number, call.from_user)
-        bot.answer_callback_query(call.id, 'Successfully Added ' + action + ' to your list')
+        bot.answer_callback_query(call.id, messages.juz_successfully_added_to_your_list())
 
     elif task == 'done':
         if action.endswith('✅'):
-            bot.answer_callback_query(call.id, "You cant finish juz twice!")
+            bot.answer_callback_query(call.id, messages.juz_is_read())
             return
+
+        juz_number = int(action)
         dbhelper.done_reading(juz_number)
-        bot.answer_callback_query(call.id, 'Congrats! May Allah bless your efforts')
+        bot.answer_callback_query(call.id, messages.done_reading())
 
     elif task == 'drop':
         if action.endswith('✅'):
-            bot.answer_callback_query(call.id, "You can't drop juz you have already read!")
+            bot.answer_callback_query(call.id, messages.warning_drop_read_juz())
             return
+
+        juz_number = int(action)
         dbhelper.drop_user(juz_number)
-        bot.answer_callback_query(call.id, 'Successfully Dropped the ' + action + ' juz from your list')
+        bot.answer_callback_query(call.id, messages.success_drop_juz())
         bot.send_message(SUPER_ADMIN_ID, 'The user ' + str(call.from_user.username) + ' dropped the juz ' + action)
 
 
@@ -347,7 +371,7 @@ def callback_deadline(call, task, action):
             deadline.extend_deadline(int(action))
             bot.answer_callback_query(call.id, "Deadline is extended for " + action + ' days')
         else:
-            bot.answer_callback_query(call.id, "You are not allowed to extend deadline")
+            bot.answer_callback_query(call.id, messages.not_allowed_to_extend_deadline())
 
 
 @bot.callback_query_handler(func=lambda call: True)
@@ -365,16 +389,16 @@ def callback_query(call):
 
 @bot.message_handler(func=lambda message: True)
 def message_handler(message):
-    if not message.chat.type == 'private':
+    if not message.chat.type == 'private' and not dbhelper.check_admin(message.from_user):
         return
 
     # Buttons to Buttons
     if message.text == 'Read Quran':
-        bot.send_message(message.chat.id, "Choose which action you want to perform",
+        bot.send_message(message.chat.id, messages.message_after_read_quran_button(),
                          reply_markup=keyboard.read_quran_keyboard())
 
     elif message.text == 'Deadline':
-        bot.send_message(message.chat.id, "Choose which action you want to perform",
+        bot.send_message(message.chat.id, messages.message_after_deadline_button(),
                          reply_markup=keyboard.deadline_keyboard())
 
     # Buttons to info
@@ -388,41 +412,41 @@ def message_handler(message):
     # Buttons to  InlineKeyboard
 
     elif message.text == 'add juz':
-        bot.send_message(message.chat.id, "Choose which juz you want to read",
+        bot.send_message(message.chat.id, messages.message_after_add_juz_button(),
                          reply_markup=keyboard.add_juz_keyboard())
 
     elif message.text == 'drop juz':
         if len(dbhelper.generate_my_list(message.from_user)) > 0:
-            bot.send_message(message.chat.id, "Choose which juz you want to drop",
+            bot.send_message(message.chat.id, messages.message_after_drop_juz_button(),
                              reply_markup=keyboard.drop_juz_keyboard(message.from_user))
         else:
-            bot.send_message(message.chat.id, "Your list is empty, firstly you should add juz to your list")
+            bot.send_message(message.chat.id, messages.warning_drop_empty_list())
 
     elif message.text == 'done juz':
         if len(dbhelper.generate_my_list(message.from_user)) > 0:
-            bot.send_message(message.chat.id, "Choose which juz you have finished reading",
+            bot.send_message(message.chat.id, messages.message_after_done_juz_button(),
                              reply_markup=keyboard.done_juz_keyboard(message.from_user))
         else:
-            bot.send_message(message.chat.id, "Your list is empty, firstly you should add juz to your list")
+            bot.send_message(message.chat.id, messages.warning_done_empty_list())
 
     elif message.text == 'Show List':
-        message_text = '#hatm' + '\n\n'
+        message_text = '#hatm' + str(dbhelper.get_hatym_number()) + '\n\n'
         if deadline.check_deadline():
             message_text += str(deadline.get_deadline()) + '\n\n'
         message_text += tools.show_all()
         bot.send_message(message.chat.id, message_text)
 
     elif message.text == 'Show Deadline':
-        # if not deadline.check_deadline():
-        #     bot.send_message(message.chat.id, "You did not set deadline")
-        # else:
-        bot.send_message(message.chat.id, deadline.get_deadline(), reply_markup=keyboard.deadline_keyboard())
+        if not deadline.check_deadline():
+            bot.send_message(message.chat.id, "You did not set deadline")
+        else:
+            bot.send_message(message.chat.id, deadline.get_deadline(), reply_markup=keyboard.deadline_keyboard())
 
     elif message.text == 'Extend Deadline':
         if not deadline.check_deadline():
             bot.send_message(message.chat.id, "You did not set deadline")
         else:
-            bot.send_message(message.chat.id, 'Choose the appropriate date',
+            bot.send_message(message.chat.id, "Extend Deadline",
                              reply_markup=keyboard.extend_deadline_keyboard())
 
     elif message.text == "◀Back":
@@ -441,9 +465,6 @@ def message_handler(message):
             dbhelper.set_default_deadline()
             bot.send_message(message.chat.id, "Successfully Removed the Deadline",
                              reply_markup=keyboard.deadline_keyboard())
-
-    else:
-        bot.send_message(message.chat.id, "Something went wrong!")
 
 
 bot.polling()
