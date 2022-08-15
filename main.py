@@ -8,6 +8,7 @@ import tools
 import keyboard
 import dbhelper
 import messages
+import juz
 
 API_KEY = config('API_KEY')
 SUPER_ADMIN_ID = int(config('SUPER_ADMIN_ID'))
@@ -40,6 +41,15 @@ def completed_hatm_command(message):
     dbhelper.clean_all()
     dbhelper.set_default_deadline()
     bot.send_message(dbhelper.get_general_chat_id(), messages.completed_hatym())
+
+
+@bot.message_handler(commands=['clear_all'])
+def clean_all(message):
+    if not dbhelper.check_admin(message.from_user):
+        return
+
+    dbhelper.clean_all()
+    bot.send_message(message.chat.id, "Clean all juz")
 
 
 @bot.message_handler(commands=['free_juz'])
@@ -160,15 +170,18 @@ def add_to_mylist(message):
                                           "between [1, 30] after command")
         return
 
-    if dbhelper.check_read(juz_number):
+    get_juz_data = dbhelper.get_juz_data(juz_number)
+    print(get_juz_data)
+
+    if juz.check_read(get_juz_data):
         bot.send_message(message.chat.id, messages.juz_is_read())
         return
 
-    if dbhelper.check_mine(juz_number, message.from_user):
+    if juz.check_mine(juz_number, message.from_user):
         bot.send_message(message.chat.id, messages.warning_add_my_juz())
         return
 
-    if not dbhelper.check_free(juz_number):
+    if not juz.check_free(juz_number):
         bot.send_message(message.chat.id, messages.warning_add_others_juz())
         return
 
@@ -221,6 +234,25 @@ def done_reading_juz(message):
     else:
         dbhelper.done_reading(juz_number)
         bot.send_message(message.chat.id, messages.done_reading())
+
+
+@bot.message_handler(commands=['warn_not_finished'])
+def warn_not_finished(message):
+    if not dbhelper.check_admin(message.from_user):
+        return
+
+    data = tools.extract_arg(message.text)
+    if len(data) == 0:
+        data = ""
+
+    message_text = str(data)
+    temp_list = tools.show_list(dbhelper.get_not_finished_users())
+    if temp_list == "List is empty":
+        bot.send_message(message.chat.id, "Hatym is finished!")
+        return
+
+    message_text += temp_list
+    bot.send_message(dbhelper.get_general_chat_id(), message_text)
 
 
 @bot.message_handler(commands=["drop"])
@@ -326,42 +358,43 @@ def check_if_admin_command(message):
 def callback_juz(call, task, action):
     if task == 'add':
         if action.endswith('✅'):
-            bot.answer_callback_query(call.id, messages.juz_is_read())
+            bot.send_message(call.from_user.id, messages.juz_is_read())
             return
 
         juz_number = int(action)
-        if dbhelper.check_read(juz_number):
-            bot.send_message(call.id, messages.juz_is_read())
+        juz_data = dbhelper.get_juz_data(juz_number)
+        if juz.check_read(juz_data):
+            bot.send_message(call.from_user.id, messages.juz_is_read())
             return
 
-        if dbhelper.check_mine(juz_number, call.from_user):
-            bot.send_message(call.id, messages.warning_add_my_juz())
+        if juz.check_mine(juz_data, call.from_user):
+            bot.send_message(call.from_user.id, messages.warning_add_my_juz())
             return
 
-        if not dbhelper.check_free(juz_number):
-            bot.send_message(call.id, messages.warning_add_others_juz())
+        if not juz.check_free(juz_data):
+            bot.send_message(call.from_user.id, messages.warning_add_others_juz())
             return
 
         dbhelper.add_juz(juz_number, call.from_user)
-        bot.answer_callback_query(call.id, messages.juz_successfully_added_to_your_list())
+        bot.send_message(call.from_user.id, messages.juz_successfully_added_to_your_list())
 
     elif task == 'done':
         if action.endswith('✅'):
-            bot.answer_callback_query(call.id, messages.juz_is_read())
+            bot.send_message(call.from_user.id, messages.juz_is_read())
             return
 
         juz_number = int(action)
         dbhelper.done_reading(juz_number)
-        bot.answer_callback_query(call.id, messages.done_reading())
+        bot.send_message(call.from_user.id, messages.done_reading())
 
     elif task == 'drop':
         if action.endswith('✅'):
-            bot.answer_callback_query(call.id, messages.warning_drop_read_juz())
+            bot.send_message(call.from_user.id, messages.warning_drop_read_juz())
             return
 
         juz_number = int(action)
         dbhelper.drop_user(juz_number)
-        bot.answer_callback_query(call.id, messages.success_drop_juz())
+        bot.send_message(call.from_user.id, messages.success_drop_juz())
         bot.send_message(SUPER_ADMIN_ID, 'The user ' + str(call.from_user.username) + ' dropped the juz ' + action)
 
 
@@ -369,9 +402,9 @@ def callback_deadline(call, task, action):
     if task == 'extend_deadline':
         if dbhelper.check_admin(call.from_user):
             deadline.extend_deadline(int(action))
-            bot.answer_callback_query(call.id, "Deadline is extended for " + action + ' days')
+            bot.send_message(call.from_user.id, "Deadline is extended for " + action + ' days')
         else:
-            bot.answer_callback_query(call.id, messages.not_allowed_to_extend_deadline())
+            bot.send_message(call.from_user.id, messages.not_allowed_to_extend_deadline())
 
 
 @bot.callback_query_handler(func=lambda call: True)

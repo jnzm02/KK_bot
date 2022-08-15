@@ -60,9 +60,11 @@ def clean_all():
 
 def check_read(juz_number) -> bool:
     cursor.execute("SELECT * FROM juz WHERE juz_number={}".format(juz_number))
-    data = cursor.fetchall()[0]
+    if cursor.description is None:
+        return False
+    data = cursor.fetchall()
     print(data)
-    return data[2]  # return true if the juz already read
+    return data[0][2]
 
 
 def set_deadline(day, month, year):
@@ -72,12 +74,18 @@ def set_deadline(day, month, year):
 
 def check_mine(juz_number, user) -> bool:
     cursor.execute("SELECT * FROM juz WHERE juz_number={} and user_id='{}'".format(juz_number, user.id))
-    return len(cursor.fetchall()) > 0
+    if cursor.description is None:
+        return False
+    data = cursor.fetchall()
+    return len(data) > 0
 
 
 def check_free(juz_number) -> bool:
     cursor.execute("SELECT * FROM juz WHERE juz_number={} and username = 'NULL_USER'".format(juz_number))
-    return len(cursor.fetchall()) > 0
+    if cursor.description is None:
+        return False
+    data = cursor.fetchall()
+    return len(data) > 0
 
 
 def get_deadline() -> list:
@@ -88,8 +96,8 @@ def get_deadline() -> list:
 
 def add_new_user(user):
     username = user.username
-    if username is None:
-        username = user.first_name + user.second_name
+    if str(username) == 'None':
+        username = user.first_name+' '+user.last_name
     cursor.execute(
         "INSERT INTO accounts VALUES ('{user_id}', '{username}', false) ON conflict (user_id) "
         "DO UPDATE SET username = '{username}'".format(user_id=user.id, username=username))
@@ -139,3 +147,8 @@ def completed_hatym():
 def get_hatym_number():
     cursor.execute("SELECT * FROM hatym_counter")
     return cursor.fetchall()[0][0]
+
+
+def get_juz_data(juz_number):
+    cursor.execute("SELECT * FROM juz WHERE juz_number={}".format(juz_number))
+    return cursor.fetchall()[0]
