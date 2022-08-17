@@ -166,9 +166,11 @@ def get_not_finished_users():
     return users_list
 
 
-def user_id_list():
+def user_id_list() -> list:
     cursor.execute("SELECT * FROM accounts where username != 'justadlet'")
     data = cursor.fetchall()
     users_list = []
     for user in data:
         users_list.append(user[0])
+
+    return users_list
