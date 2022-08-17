@@ -63,7 +63,6 @@ def check_read(juz_number) -> bool:
     if cursor.description is None:
         return False
     data = cursor.fetchall()
-    print(data)
     return data[0][2]
 
 
@@ -163,12 +162,6 @@ def get_not_finished_users():
             if user[3] != 'None':
                 if str('@'+user[3]) not in users_list:
                     users_list.append('@'+user[3])
-        #         else:
-        #             print("USER: " + user[3] + "is None")
-        #     else:
-        #         print("USER: " + user[3] + " is in users_list")
-        # else:
-        #     print("USER: " + user[3] + " is NULL_USER")
 
     return users_list
 
@@ -176,7 +169,6 @@ def get_not_finished_users():
 def user_id_list():
     cursor.execute("SELECT * FROM accounts where username != 'justadlet'")
     data = cursor.fetchall()
-    print(data)
     users_list = []
     for user in data:
         users_list.append(user[0])

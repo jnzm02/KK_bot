@@ -171,7 +171,6 @@ def add_to_mylist(message):
         return
 
     juz_data = dbhelper.get_juz_data(juz_number)
-    print(juz_data)
 
     if juz.check_read(juz_data):
         bot.send_message(message.chat.id, messages.juz_is_read())
@@ -242,16 +241,11 @@ def warn_everyone_command(message):
         return
 
     message_text = tools.concatenate_arg(tools.extract_arg(message.text))
-    print("Message text:", type(message_text))
     if message_text == " ":
         bot.send_message(message.chat.id, "List is empty!")
         return
     user_id_list = dbhelper.user_id_list()
-    print("main.py", user_id_list)
     bot.send_message(message.chat.id, str(user_id_list))
-
-    # for user in dbhelper.user_id_list():
-    #     bot.send_message(user, message_text)
 
 
 @bot.message_handler(commands=['warn_not_finished'])
