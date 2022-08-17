@@ -44,8 +44,8 @@ def drop_user(juz_number):
 
 
 def show_all():
-    cursor.execute("SELECT * FROM juz")
-    return sorted(cursor.fetchall())
+    cursor.execute("SELECT * FROM juz ORDER BY juz_number")
+    return cursor.fetchall()
 
 
 def done_juz(juz_number):
@@ -152,3 +152,31 @@ def get_hatym_number():
 def get_juz_data(juz_number):
     cursor.execute("SELECT * FROM juz WHERE juz_number={}".format(juz_number))
     return cursor.fetchall()[0]
+
+
+def get_not_finished_users():
+    cursor.execute("SELECT * FROM juz WHERE is_done = False")
+    users_list = []
+    user_data = cursor.fetchall()
+    for user in user_data:
+        if user[3] != 'NULL_USER':
+            if user[3] != 'None':
+                if str('@'+user[3]) not in users_list:
+                    users_list.append('@'+user[3])
+        #         else:
+        #             print("USER: " + user[3] + "is None")
+        #     else:
+        #         print("USER: " + user[3] + " is in users_list")
+        # else:
+        #     print("USER: " + user[3] + " is NULL_USER")
+
+    return users_list
+
+
+def user_id_list():
+    cursor.execute("SELECT * FROM accounts where username != 'justadlet'")
+    data = cursor.fetchall()
+    print(data)
+    users_list = []
+    for user in data:
+        users_list.append(user[0])

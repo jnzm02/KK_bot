@@ -5,20 +5,30 @@ def extract_arg(arg):
     return arg.split()[1:]
 
 
-def check_has_arg(arg):
+def check_has_arg(arg) -> bool:
     return not len(arg) == 0
 
 
-def show_free_juz_list(temp_list):
+def concatenate_arg(arg) -> str:
+    message_text = ""
+    for word in arg:
+        message_text += word
+        message_text += ' '
+    message_text += '\n'
+
+    return message_text
+
+
+def show_free_juz_list(temp_list) -> str:
     if len(temp_list) == 0:
         return "List is empty"
-    the_list = "*"
+    the_list = "*"  # star char makes text bold in telegram
     for juz_number in temp_list:
         the_list += str(juz_number) + ' '
-    return the_list+'*'
+    return the_list + '*'
 
 
-def show_list(temp_list):
+def show_list(temp_list) -> str:
     if len(temp_list) == 0:
         return "List is empty"
     the_list = ""
@@ -36,7 +46,7 @@ def get_juz(cursor) -> list:
     temp_list = []
     for juz in cursor:
         if juz[2]:
-            temp_list.append(str(juz[0])+'✅')
+            temp_list.append(str(juz[0]) + '✅')
         else:
             temp_list.append(str(juz[0]))
 
@@ -52,7 +62,7 @@ def show_all():
         if juz[3] == 'NULL_USER':
             user = ''
         if juz[2]:
-            my_list.append("◦ "+str(juz[0]) + ": " + user+'✅')
+            my_list.append("◦ " + str(juz[0]) + ": " + user + '✅')
         else:
-            my_list.append("◦ "+str(juz[0]) + ": " + user)
+            my_list.append("◦ " + str(juz[0]) + ": " + user)
     return show_list(my_list)

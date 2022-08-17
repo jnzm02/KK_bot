@@ -57,7 +57,7 @@ def show_free_juz_command(message):
     if message.chat.type != 'private' and not dbhelper.check_admin(message.from_user):
         return
 
-    bot.send_message(message.chat.id, messages.free_juz_list(), parse_mode='Markdown')
+    bot.send_message(message.chat.id, messages. free_juz_list(), parse_mode='Markdown')
 
 
 @bot.message_handler(commands=['my_list'])
@@ -170,18 +170,18 @@ def add_to_mylist(message):
                                           "between [1, 30] after command")
         return
 
-    get_juz_data = dbhelper.get_juz_data(juz_number)
-    print(get_juz_data)
+    juz_data = dbhelper.get_juz_data(juz_number)
+    print(juz_data)
 
-    if juz.check_read(get_juz_data):
+    if juz.check_read(juz_data):
         bot.send_message(message.chat.id, messages.juz_is_read())
         return
 
-    if juz.check_mine(juz_number, message.from_user):
+    if juz.check_mine(juz_data, message.from_user):
         bot.send_message(message.chat.id, messages.warning_add_my_juz())
         return
 
-    if not juz.check_free(juz_number):
+    if not juz.check_free(juz_data):
         bot.send_message(message.chat.id, messages.warning_add_others_juz())
         return
 
@@ -218,22 +218,40 @@ def done_reading_juz(message):
         return
 
     juz_number = int(juz_number)
-
+    juz_data = dbhelper.get_juz_data(juz_number)
     if juz_number > 30 or juz_number <= 0:
         bot.send_message(message.chat.id, "No juz found!")
         return
 
-    if dbhelper.check_read(juz_number):
+    if juz.check_read(juz_data):
         bot.send_message(message.chat.id, messages.juz_is_read())
         return
 
-    if not dbhelper.check_mine(juz_number, message.from_user):
+    if not juz.check_mine(juz_data, message.from_user):
         bot.send_message(message.chat.id, messages.juz_is_not_yours())
         return
 
     else:
         dbhelper.done_reading(juz_number)
         bot.send_message(message.chat.id, messages.done_reading())
+
+
+@bot.message_handler(commands=['warn_everyone'])
+def warn_everyone_command(message):
+    if str(SUPER_ADMIN_ID) != str(message.from_user.id):
+        return
+
+    message_text = tools.concatenate_arg(tools.extract_arg(message.text))
+    print("Message text:", type(message_text))
+    if message_text == " ":
+        bot.send_message(message.chat.id, "List is empty!")
+        return
+    user_id_list = dbhelper.user_id_list()
+    print("main.py", user_id_list)
+    bot.send_message(message.chat.id, str(user_id_list))
+
+    # for user in dbhelper.user_id_list():
+    #     bot.send_message(user, message_text)
 
 
 @bot.message_handler(commands=['warn_not_finished'])
@@ -245,7 +263,7 @@ def warn_not_finished(message):
     if len(data) == 0:
         data = ""
 
-    message_text = str(data)
+    message_text = tools.concatenate_arg(data)
     temp_list = tools.show_list(dbhelper.get_not_finished_users())
     if temp_list == "List is empty":
         bot.send_message(message.chat.id, "Hatym is finished!")
@@ -274,16 +292,17 @@ def drop_user(message):
         return
 
     juz_number = int(juz_number)
+    juz_data = dbhelper.get_juz_data(juz_number)
 
     if juz_number > 30 or juz_number <= 0:
         bot.send_message(message.chat.id, "No juz found!")
         return
 
-    if not dbhelper.check_mine(juz_number, message.from_user):
+    if not juz.check_mine(juz_data, message.from_user):
         bot.send_message(message.chat.id, messages.warning_drop_others_juz())
         return
 
-    if dbhelper.check_read(juz_number):
+    if juz.check_read(juz_data):
         bot.send_message(message.chat.id, messages.warning_drop_read_juz())
         return
 
@@ -367,7 +386,7 @@ def callback_juz(call, task, action):
             bot.send_message(call.from_user.id, messages.juz_is_read())
             return
 
-        if juz.check_mine(juz_data, call.from_user):
+        if not juz.check_mine(juz_data, call.from_user):
             bot.send_message(call.from_user.id, messages.warning_add_my_juz())
             return
 
