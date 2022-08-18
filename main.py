@@ -489,6 +489,9 @@ def message_handler(message):
             bot.send_message(message.chat.id, deadline.get_deadline(), reply_markup=keyboard.deadline_keyboard())
 
     elif message.text == 'Extend Deadline':
+        if not dbhelper.check_admin(message.from_user):
+            return
+
         if not deadline.check_deadline():
             bot.send_message(message.chat.id, "You did not set deadline")
         else:
@@ -499,12 +502,18 @@ def message_handler(message):
         start_command(message)
 
     elif message.text == 'Set Deadline':
+        if not dbhelper.check_admin(message.from_user):
+            return
+
         message_text = 'The admin did not finished this part. You can use /set_deadline command instead. For ' \
                        'example </set_deadline ' + str(datetime.date.today().day) + ' ' + str(
                         datetime.date.today().month) + ' ' + str(datetime.date.today().year) + '>'
         bot.send_message(message.chat.id, message_text)
 
     elif message.text == 'Remove Deadline':
+        if not dbhelper.check_admin(message.from_user):
+            return
+
         if not deadline.check_deadline():
             bot.send_message(message.chat.id, "You did not set deadline")
         else:
