@@ -380,11 +380,11 @@ def callback_juz(call, task, action):
             bot.send_message(call.from_user.id, messages.juz_is_read())
             return
 
-        if not juz.check_mine(juz_data, call.from_user):
+        if juz.check_mine(juz_data, call.from_user):
             bot.send_message(call.from_user.id, messages.warning_add_my_juz())
             return
 
-        if not juz.check_free(juz_data):
+        if juz.check_free(juz_data):
             bot.send_message(call.from_user.id, messages.warning_add_others_juz())
             return
 
