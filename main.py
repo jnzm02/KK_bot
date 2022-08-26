@@ -439,11 +439,11 @@ def message_handler(message):
         return
 
     # Buttons to Buttons
-    if message.text == 'Read Quran':
+    if message.text == 'Read Quran📖':
         bot.send_message(message.chat.id, messages.message_after_read_quran_button(),
                          reply_markup=keyboard.read_quran_keyboard())
 
-    elif message.text == 'Deadline':
+    elif message.text == 'Deadline⏰':
         bot.send_message(message.chat.id, messages.message_after_deadline_button(),
                          reply_markup=keyboard.deadline_keyboard())
 
@@ -475,7 +475,7 @@ def message_handler(message):
         else:
             bot.send_message(message.chat.id, messages.warning_done_empty_list())
 
-    elif message.text == 'Show List':
+    elif message.text == 'Show List📕':
         message_text = '#hatm' + str(dbhelper.get_hatym_number()) + '\n\n'
         if deadline.check_deadline():
             message_text += str(deadline.get_deadline()) + '\n\n'

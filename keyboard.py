@@ -9,9 +9,9 @@ import dbhelper
 def start_keyboard():
     keyboard = ReplyKeyboardMarkup(row_width=2, resize_keyboard=True)
     keyboard.add(
-        KeyboardButton("Read Quran"),
-        KeyboardButton("Deadline"),
-        KeyboardButton('Show List')
+        KeyboardButton("Read Quran📖"),
+        KeyboardButton("Deadline⏰"),
+        KeyboardButton('Show List📕')
     )
 
     return keyboard
