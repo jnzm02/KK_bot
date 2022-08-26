@@ -3,13 +3,14 @@ import dbhelper
 
 
 def start_command() -> str:
-    return "Hello to the Team, This bot is created to make the process of reading Quran more comfortable with your " \
-           "peers. The bot will monitor the process of reading Quran "
+    return "Hello to the Team, This bot is created to make the process of reading Quran 📖 "
 
 
 def completed_hatym() -> str:
-    return "Congrats, we have finished reading our hatm. Thanks for everyone who engaged in this. May Allah bless " \
-           "your efforts "
+    return "Congrats, we have finished reading our haty0" \
+           "" \
+           "m. Thanks for everyone who engaged in this. May Allah bless " \
+           "your efforts 😇 "
 
 
 # The list of free juz:
@@ -19,7 +20,7 @@ def free_juz_list() -> str:
 
 
 def juz_successfully_added_to_your_list() -> str:
-    return "Juz has added to your list\nPlease finish reading till the deadline"
+    return "Juz has been added to your list\nPlease finish reading till the deadline"
 
 
 def juz_is_not_yours() -> str:
@@ -39,11 +40,11 @@ def juz_is_read() -> str:
 
 
 def done_reading() -> str:
-    return "Congrats keep going! May Allah bless your efforts!"
+    return "Congrats keep going! May Allah bless your efforts!  😇"
 
 
 def warning_drop_others_juz() -> str:
-    return "You can't drop this juz cause it is not yours"
+    return "You can't drop this juz because it is not yours"
 
 
 def warning_drop_read_juz() -> str:
@@ -51,7 +52,7 @@ def warning_drop_read_juz() -> str:
 
 
 def success_drop_juz() -> str:
-    return "Successfully dropped the juz"
+    return "Successfully dropped the juz ✅"
 
 
 def not_allowed_to_call() -> str:
@@ -59,7 +60,7 @@ def not_allowed_to_call() -> str:
 
 
 def not_allowed_to_extend_deadline() -> str:
-    return "You are not allowed to extend deadline"
+    return "You are not allowed to extend the deadline"
 
 
 def message_after_read_quran_button() -> str:
@@ -79,7 +80,7 @@ def message_after_drop_juz_button() -> str:
 
 
 def warning_drop_empty_list() -> str:
-    return "Your list is empty, firstly you should add juz to your list"
+    return "Your list is empty, firstly you should add the juz to your list"
 
 
 def message_after_done_juz_button() -> str:
@@ -87,4 +88,4 @@ def message_after_done_juz_button() -> str:
 
 
 def warning_done_empty_list() -> str:
-    return "Your list is empty, firstly you should add juz to your list"
+    return "Your list is empty, firstly you should add the juz to your list"
