@@ -180,6 +180,6 @@ def user_id_list() -> list:
 
 
 def number_of_users() -> int:
-    cursor.execute("SELECT count(*) FROM accounts")
+    cursor.execute("SELECT COUNT(*) FROM accounts")
     data = cursor.fetchall()
-    return int(data)
+    return data
