@@ -10,9 +10,9 @@ import dbhelper
 import messages
 import juz
 
-# API_KEY = config('API_KEY')
-SUPER_ADMIN_ID = int('969397104')
-bot = telebot.TeleBot('5450320190:AAFcQuvaKSMO7Pg76I6tF5J65U_x2PCYIEM')
+API_KEY = config('API_KEY')
+SUPER_ADMIN_ID = int(config('SUPER_ADMIN_ID'))
+bot = telebot.TeleBot(API_KEY)
 
 
 @bot.message_handler(commands=['start'])
