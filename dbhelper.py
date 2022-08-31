@@ -177,3 +177,9 @@ def user_id_list() -> list:
         users_list.append(user[0])
 
     return users_list
+
+
+def number_of_users() -> int:
+    cursor.execute("SELECT count(*) FROM accounts")
+    data = cursor.fetchall()
+    return int(data)

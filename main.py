@@ -32,6 +32,14 @@ def send_evening_notification_command(message):
     bot.send_message(dbhelper.get_general_chat_id(), message_text+tools.show_all())
 
 
+@bot.message_handler(commands=['numberofusers'])
+def get_number_of_users(message):
+    if not dbhelper.check_admin(message.from_user):
+        return
+
+    bot.send_message(message.chat.id, dbhelper.number_of_users)
+
+
 @bot.message_handler(commands=['completed_hatm'])
 def completed_hatm_command(message):
     if not dbhelper.check_admin(message.from_user):
