@@ -5,10 +5,10 @@ from decouple import config
 # local
 import tools
 
-connection = psycopg2.connect(database=config('DB_DATABASE'),
-                              user=config('DB_USER'),
-                              password=config('DB_PASSWORD'),
-                              host=config('DB_HOST'),
+connection = psycopg2.connect(database='df27o3hm8tn105',
+                              user='eqslawvfcqclks',
+                              password='bd8003981435edf8e5134a1b7d6f0802bace5810cef727ad5968f44b79af1663',
+                              host='ec2-52-207-15-147.compute-1.amazonaws.com',
                               port="5432")
 
 cursor = connection.cursor()
@@ -96,7 +96,10 @@ def get_deadline() -> list:
 def add_new_user(user):
     username = user.username
     if str(username) == 'None':
-        username = user.first_name+' '+user.last_name
+        if user.first_name is None or user.last_name is None:
+            username = "Unknown User"
+        else:
+            username = user.first_name+' '+user.last_name
     cursor.execute(
         "INSERT INTO accounts VALUES ('{user_id}', '{username}', false) ON conflict (user_id) "
         "DO UPDATE SET username = '{username}'".format(user_id=user.id, username=username))
