@@ -126,6 +126,11 @@ def free_juz():
     return tools.get_juz(sorted(cursor.fetchall()))
 
 
+def users_list():
+    cursor.execute("SELECT * FROM accounts WHERE user_id != '-1'")
+    return cursor.fetchall()
+
+
 def generate_my_list(user):
     cursor.execute("SELECT * FROM juz where user_id='{}'".format(user.id))
     return tools.get_juz(sorted(cursor.fetchall()))

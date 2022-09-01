@@ -16,7 +16,7 @@ def completed_hatym() -> str:
 # The list of free juz:
 # 1 2 3 4 5 7 8 9 10 13 14 15 16 18 19 20 21 24 28
 def free_juz_list() -> str:
-    return "The list of free juz:\n" + tools.show_free_juz_list(dbhelper.free_juz())
+    return "The list of free juzs:\n" + tools.show_free_juz_list(dbhelper.free_juz())
 
 
 def juz_successfully_added_to_your_list() -> str:

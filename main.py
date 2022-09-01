@@ -107,6 +107,17 @@ def set_deadline_command(message):
                      '\nDeadline : ' + str(deadline.get_deadline()), reply_markup=keyboard.deadline_keyboard())
 
 
+@bot.message_handler(commands=['users_list'])
+def users_list_command(message):
+    if not dbhelper.check_admin(message.from_user):
+        bot.send_message(message.chat.id, messages.not_allowed_to_call())
+        return
+
+    bot.send_message(message.chat.id, "In progress...")
+    message_text = tools.generate_users_list(dbhelper.users_list())
+    bot.send_message(message.chat.id, message_text)
+
+
 @bot.message_handler(commands=['extend_deadline'])
 def extend_deadline_command(message):
     if not dbhelper.check_admin(message.from_user):
@@ -469,7 +480,7 @@ def message_handler(message):
 
     # Buttons to info
 
-    elif message.text == 'free juz':
+    elif message.text == 'free juzs':
         show_free_juz_command(message)
 
     elif message.text == 'my list':

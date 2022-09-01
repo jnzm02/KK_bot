@@ -33,7 +33,7 @@ def show_list(temp_list) -> str:
         return "List is empty"
     the_list = ""
     for item in temp_list:
-        the_list += str(item) + '\n'
+        the_list += '◦ '+str(item) + '\n'
     return the_list
 
 
@@ -46,11 +46,20 @@ def get_juz(cursor) -> list:
     temp_list = []
     for juz in cursor:
         if juz[2]:
-            temp_list.append(str(juz[0]) + '✅')
+            temp_list.append(str(juz[0]) + ' ✅')
         else:
             temp_list.append(str(juz[0]))
 
     return temp_list
+
+
+def generate_users_list(users_list) -> str:
+    message_text = "Users List:\n"
+    i = 0
+    for user in users_list:
+        i += 1
+        message_text += str(str(i) + ": " + "" + user[1] + "" + "\n")
+    return message_text
 
 
 def show_all():

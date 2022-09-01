@@ -29,7 +29,7 @@ def start_user_keyboard():
 def read_quran_keyboard():
     keyboard = ReplyKeyboardMarkup(row_width=2, resize_keyboard=True)
     keyboard.add(
-        KeyboardButton("free juz"),
+        KeyboardButton("free juzs"),
         KeyboardButton("my list"),
         KeyboardButton("add juz"),
         KeyboardButton("done juz"),
