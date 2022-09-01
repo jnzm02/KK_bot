@@ -355,7 +355,7 @@ def check_chat_command(message):
 
 @bot.message_handler(commands=['set_admin'])
 def set_admin_command(message):
-    if not tools.check_super_admin(message.from_user.id, SUPER_ADMIN_ID):
+    if not str(message.from_user.id) == str(SUPER_ADMIN_ID):
         bot.send_message(message.chat.id, messages.not_allowed_to_call())
         return
 

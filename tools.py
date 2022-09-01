@@ -72,4 +72,4 @@ def show_all():
 
 
 def check_super_admin(user_id, super_admin_id) -> bool:
-    return str(user_id) is str(super_admin_id)
+    return str(user_id) == str(super_admin_id)
