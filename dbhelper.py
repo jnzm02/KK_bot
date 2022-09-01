@@ -29,7 +29,7 @@ def all_admins() -> list:
     admin_list = []
     admins = cursor.fetchall()
     for admin in admins:
-        admin_list.append(admin[0])
+        admin_list.append(admin[1])
     return admin_list
 
 
@@ -179,8 +179,8 @@ def user_id_list() -> list:
     return users_list
 
 
-def set_admin(user):
-    cursor.execute("UPDATE accounts SET admin_status = True WHERE user_id = {}".format(user.id))
+def set_admin(user_id):
+    cursor.execute("UPDATE accounts SET admin_status = True WHERE user_id = '{}'".format(user_id))
     connection.commit()
 
 
