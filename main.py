@@ -358,7 +358,9 @@ def set_admin_command(message):
     if not tools.check_super_admin(message.from_user.id, SUPER_ADMIN_ID):
         return
 
-    dbhelper.set_admin(message.from_user)
+    bot.send_message(message.chat.id, "In Progress...")
+    user_id = tools.extract_arg(message.text)
+    dbhelper.set_admin(user_id[0])
     bot.send_message(message.chat.id, "The user was added to the admins list you can check it using command '/admins'")
 
 
@@ -434,7 +436,7 @@ def callback_deadline(call, task, action):
             deadline.extend_deadline(int(action))
             bot.send_message(call.from_user.id, "Deadline is extended for " + action + ' days')
         else:
-            bot.send_message(call.from_user.id, messages.not_allowed_to_extend_deadline())
+            bot.send_message(call.from_user.id, messages.not_allowed_to_call())
 
 
 @bot.callback_query_handler(func=lambda call: True)
@@ -507,6 +509,8 @@ def message_handler(message):
 
     elif message.text == 'Extend Deadline':
         if not dbhelper.check_admin(message.from_user):
+            if message.chat.type == 'private':
+                bot.send_message(message.chat.id, messages.not_allowed_to_call())
             return
 
         if not deadline.check_deadline():
@@ -520,15 +524,19 @@ def message_handler(message):
 
     elif message.text == 'Set Deadline':
         if not dbhelper.check_admin(message.from_user):
+            if message.chat.type == 'private':
+                bot.send_message(message.chat.id, messages.not_allowed_to_call())
             return
 
-        message_text = 'The admin did not finished this part. You can use /set_deadline command instead. For ' \
+        message_text = 'SUPER admin did not finished this part. You can use /set_deadline command instead. For ' \
                        'example </set_deadline ' + str(datetime.date.today().day) + ' ' + str(
                         datetime.date.today().month) + ' ' + str(datetime.date.today().year) + '>'
         bot.send_message(message.chat.id, message_text)
 
     elif message.text == 'Remove Deadline':
         if not dbhelper.check_admin(message.from_user):
+            if message.chat.type == 'private':
+                bot.send_message(message.chat.id, messages.not_allowed_to_call())
             return
 
         if not deadline.check_deadline():

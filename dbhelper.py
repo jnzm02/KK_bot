@@ -187,4 +187,4 @@ def set_admin(user):
 def number_of_users() -> int:
     cursor.execute("SELECT COUNT(*) FROM accounts")
     data = cursor.fetchall()
-    return data
+    return data[0]

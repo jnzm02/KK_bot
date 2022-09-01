@@ -56,11 +56,7 @@ def success_drop_juz() -> str:
 
 
 def not_allowed_to_call() -> str:
-    return "You are not allowed to call this command"
-
-
-def not_allowed_to_extend_deadline() -> str:
-    return "You are not allowed to extend the deadline"
+    return "You are not allowed to call this command, please contact with admins!"
 
 
 def message_after_read_quran_button() -> str:
