@@ -180,7 +180,7 @@ def user_id_list() -> list:
 
 
 def set_admin(user):
-    cursor.execute("UPDATE accounts SET is_admin = True WHERE user_id = {}".format(user.id))
+    cursor.execute("UPDATE accounts SET admin_status = True WHERE user_id = {}".format(user.id))
     connection.commit()
 
 
