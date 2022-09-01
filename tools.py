@@ -69,3 +69,7 @@ def show_all():
             else:
                 my_list.append("◦ " + str(juz[0]) + ": " + user)
     return show_list(my_list)
+
+
+def check_super_admin(user_id, super_admin_id) -> bool:
+    return str(user_id) is str(super_admin_id)

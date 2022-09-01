@@ -170,13 +170,18 @@ def get_not_finished_users():
 
 
 def user_id_list() -> list:
-    cursor.execute("SELECT * FROM accounts where username != 'justadlet'")
+    cursor.execute("SELECT * FROM accounts WHERE username != 'justadlet'")
     data = cursor.fetchall()
     users_list = []
     for user in data:
         users_list.append(user[0])
 
     return users_list
+
+
+def set_admin(user):
+    cursor.execute("UPDATE accounts SET is_admin = True WHERE user_id = {}".format(user.id))
+    connection.commit()
 
 
 def number_of_users() -> int:

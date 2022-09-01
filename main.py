@@ -32,12 +32,12 @@ def send_evening_notification_command(message):
     bot.send_message(dbhelper.get_general_chat_id(), message_text+tools.show_all())
 
 
-@bot.message_handler(commands=['numberofusers'])
+@bot.message_handler(commands=['number_of_users'])
 def get_number_of_users(message):
     if not dbhelper.check_admin(message.from_user):
         return
 
-    bot.send_message(message.chat.id, dbhelper.number_of_users)
+    bot.send_message(message.chat.id, "Current number of users is: "+str(dbhelper.number_of_users()))
 
 
 @bot.message_handler(commands=['completed_hatm'])
@@ -319,7 +319,7 @@ def super_admin_status_command(message):
     if message.chat.type != 'private' and not dbhelper.check_admin(message.from_user):
         return
 
-    if str(message.from_user.id) == str(SUPER_ADMIN_ID):
+    if tools.check_super_admin(message.from_user.id, SUPER_ADMIN_ID):
         bot.send_message(message.chat.id, "Yes you are super admin")
     else:
         bot.send_message(message.chat.id, "No you are not super admin")
@@ -351,6 +351,15 @@ def check_chat_command(message):
         return
 
     bot.send_message(message.chat.id, "This is a general chat")
+
+
+@bot.message_handler(commands=['set_admin'])
+def set_admin_command(message):
+    if not tools.check_super_admin(message.from_user.id, SUPER_ADMIN_ID):
+        return
+
+    dbhelper.set_admin(message.from_user)
+    bot.send_message(message.chat.id, "The user was added to the admins list you can check it using command '/admins'")
 
 
 @bot.message_handler(commands=['admins'])
