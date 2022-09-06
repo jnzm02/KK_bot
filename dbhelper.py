@@ -136,6 +136,11 @@ def get_progress():
     return cursor.fetchall()
 
 
+def add_text(text):
+    cursor.execute("INSERT INTO progress VALUES ('{}')".format(text))
+    connection.commit()
+
+
 def clear_progress():
     cursor.execute("DELETE FROM progress")
     connection.commit()

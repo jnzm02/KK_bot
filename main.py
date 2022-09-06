@@ -118,7 +118,7 @@ def users_list_command(message):
     bot.send_message(message.chat.id, message_text)
 
 
-@bot.message_handler(commands=['progress'])
+@bot.message_handler(commands=['progress', 'show_progress'])
 def show_progress_command(message):
     if not dbhelper.check_admin(message.from_user):
         bot.send_message(message.chat.id, messages.not_allowed_to_call())
@@ -127,7 +127,12 @@ def show_progress_command(message):
     progress = dbhelper.get_progress()
     if len(progress) < 1:
         bot.send_message(message.chat.id, "The progress is empty")
-    bot.send_message(message.chat.id, dbhelper.get_progress())
+        return
+
+    message_text = ""
+    for text in progress:
+        message_text += str(text[0]) + '\n'
+    bot.send_message(message.chat.id, message_text)
 
 
 @bot.message_handler(commands=['send_progress'])
