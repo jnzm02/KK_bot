@@ -129,7 +129,7 @@ def show_progress_command(message):
         bot.send_message(message.chat.id, "The progress is empty")
         return
 
-    message_text = ""
+    message_text = "Progress for this day:\n"
     for text in progress:
         message_text += str(text[0]) + '\n'
     bot.send_message(message.chat.id, message_text)
@@ -463,6 +463,7 @@ def callback_juz(call, task, action):
             return
 
         dbhelper.add_juz(juz_number, call.from_user)
+        dbhelper.add_text(call.from_user.username + " added juz " + str(juz_number) + '😇')
         bot.send_message(call.from_user.id, messages.juz_successfully_added_to_your_list())
 
     elif task == 'done':
@@ -482,6 +483,7 @@ def callback_juz(call, task, action):
 
         juz_number = int(action)
         dbhelper.drop_user(juz_number)
+        dbhelper.add_text(call.from_user.username+" dropped juz " + action + '😔')
         bot.send_message(call.from_user.id, messages.success_drop_juz())
         bot.send_message(SUPER_ADMIN_ID, 'The user ' + str(call.from_user.username) + ' dropped the juz ' + action)
 
