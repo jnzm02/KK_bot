@@ -158,7 +158,7 @@ def clear_progress(message):
         bot.send_message(message.chat.id, "progress is empty!")
         return
 
-    bot.send_message(message.chat.id, progress)
+    bot.send_message(message.chat.id, "Successfully deleted all progress from database")
 
 
 @bot.message_handler(commands=['extend_deadline'])
@@ -472,6 +472,7 @@ def callback_juz(call, task, action):
 
         juz_number = int(action)
         dbhelper.done_reading(juz_number)
+        dbhelper.add_text(call.from_user.username + " done reading juz " + action + '🥳')
         bot.send_message(call.from_user.id, messages.done_reading())
 
     elif task == 'drop':
