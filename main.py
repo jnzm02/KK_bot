@@ -118,6 +118,44 @@ def users_list_command(message):
     bot.send_message(message.chat.id, message_text)
 
 
+@bot.message_handler(commands=['progress'])
+def show_progress_command(message):
+    if not dbhelper.check_admin(message.from_user):
+        bot.send_message(message.chat.id, messages.not_allowed_to_call())
+        return
+
+    progress = dbhelper.get_progress()
+    if len(progress) < 1:
+        bot.send_message(message.chat.id, "The progress is empty")
+    bot.send_message(message.chat.id, dbhelper.get_progress())
+
+
+@bot.message_handler(commands=['send_progress'])
+def send_progress_command(message):
+    if not dbhelper.check_admin(message.from_user):
+        bot.send_message(message.chat.id, messages.not_allowed_to_call())
+        return
+
+    progress = dbhelper.get_progress()
+    dbhelper.clear_progress()
+    bot.send_message(dbhelper.get_general_chat_id(), progress)
+    bot.send_message(message.chat.id, "All the progress was sent to the general chat and was cleared from database")
+
+
+@bot.message_handler(commands=['clear_progress'])
+def clear_progress(message):
+    if str(SUPER_ADMIN_ID) != str(message.from_user.id):
+        return
+
+    progress = dbhelper.get_progress()
+    dbhelper.clear_progress()
+    if len(progress) < 1:
+        bot.send_message(message.chat.id, "progress is empty!")
+        return
+
+    bot.send_message(message.chat.id, progress)
+
+
 @bot.message_handler(commands=['extend_deadline'])
 def extend_deadline_command(message):
     if not dbhelper.check_admin(message.from_user):

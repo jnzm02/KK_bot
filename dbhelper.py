@@ -131,6 +131,16 @@ def users_list():
     return cursor.fetchall()
 
 
+def get_progress():
+    cursor.execute("SELECT * FROM progress")
+    return cursor.fetchall()
+
+
+def clear_progress():
+    cursor.execute("DELETE FROM progress")
+    connection.commit()
+
+
 def generate_my_list(user):
     cursor.execute("SELECT * FROM juz where user_id='{}'".format(user.id))
     return tools.get_juz(sorted(cursor.fetchall()))
