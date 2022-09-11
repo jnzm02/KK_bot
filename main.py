@@ -129,9 +129,25 @@ def show_progress_command(message):
         bot.send_message(message.chat.id, "The progress is empty")
         return
 
+    drop_text = ""
+    add_text = ""
+    done_text = ""
     message_text = "Progress for this day:\n"
     for text in progress:
-        message_text += str(text[0]) + '\n'
+        if ' added ' in str(text):
+            add_text += '  ' + str(text[0]) + '\n'
+        elif ' dropped ' in str(text):
+            drop_text += '  ' + str(text[0]) + '\n'
+        elif ' done ' in str(text):
+            done_text += '  ' + str(text[0]) + '\n'
+
+    if len(add_text) >= 1:
+        message_text += " ADD:\n" + add_text
+    if len(drop_text) >= 1:
+        message_text += " DROP:\n" + drop_text
+    if len(done_text) >= 1:
+        message_text += " DONE:\n" + done_text
+
     bot.send_message(message.chat.id, message_text)
 
 
@@ -142,7 +158,7 @@ def send_progress_command(message):
         return
 
     progress = dbhelper.get_progress()
-    dbhelper.clear_progress()
+    # dbhelper.clear_progress()
     bot.send_message(dbhelper.get_general_chat_id(), progress)
     bot.send_message(message.chat.id, "All the progress was sent to the general chat and was cleared from database")
 
@@ -192,6 +208,23 @@ def remove_deadline_command(message):
 
     dbhelper.set_default_deadline()
     bot.send_message(message.chat.id, "Successfully removed deadline")
+
+
+@bot.message_handler(commands=['deadline_past'])
+def deadline_past_command(message):
+    if not dbhelper.check_admin(message.from_user):
+        return
+
+    bot.send_message(message.chat.id, "In progress...")
+    users_list = dbhelper.take_late_people()
+    if len(users_list) < 1:
+        bot.send_message(message.chat.id, "Congrats!!! All readers ended their juzs!")
+        return
+
+    message_text = "LATE USERS LIST FOR THIS HATYM:\n"
+    for user in users_list:
+        message_text += user
+    bot.send_message(message.chat.id, message_text)
 
 
 @bot.message_handler(commands=['check_deadline'])

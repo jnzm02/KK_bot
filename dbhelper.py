@@ -136,7 +136,14 @@ def get_progress():
     return cursor.fetchall()
 
 
-def add_text(text):
+def take_late_people():
+    cursor.execute("SELECT * FROM juz WHERE is_done = FALSE")
+    return cursor.fetchall()
+
+
+def add_text(text, juz_number):
+    cursor.commit('UPDATE juz SET ')
+
     cursor.execute("INSERT INTO progress VALUES ('{}')".format(text))
     connection.commit()
 

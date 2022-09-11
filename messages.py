@@ -3,13 +3,11 @@ import dbhelper
 
 
 def start_command() -> str:
-    return "Hello to the Team, This bot is created to make the process of reading Quran 📖 "
+    return "Ассаламу Алейкум, Командаға сәлем! Бұл бот Құран оқу процесін бақылау үшін жасалған 📖 "
 
 
 def completed_hatym() -> str:
-    return "Congrats, we have finished reading our haty0" \
-           "" \
-           "m. Thanks for everyone who engaged in this. May Allah bless " \
+    return "Congrats, we have finished reading our hatym. Thanks for everyone who engaged in this. May Allah bless " \
            "your efforts 😇 "
 
 
