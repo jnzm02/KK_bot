@@ -20,6 +20,12 @@ def add_juz(juz_number, user):
     connection.commit()
 
 
+def add_juz_with_username(juz_number, user_id, username):
+    cursor.execute("UPDATE juz SET user_id = '{}', username = '{}' WHERE juz_number = {}".format(user_id, username,
+                                                                                                 juz_number))
+    connection.commit()
+
+
 def remove_admin(user_id):
     cursor.execute("DELETE FROM admins WHERE user_id = {}".format(user_id))
     connection.commit()
@@ -102,7 +108,7 @@ def add_new_user(user):
         else:
             username = user.first_name + ' ' + user.last_name
     cursor.execute(
-        "INSERT INTO accounts VALUES ('{user_id}', '{username}', false) ON conflict (user_id) "
+        "INSERT INTO accounts VALUES ('{user_id}', '{username}', false, 0) ON conflict (user_id) "
         "DO UPDATE SET username = '{username}'".format(user_id=user.id, username=username))
     connection.commit()
 
@@ -143,11 +149,15 @@ def take_late_people():
     return cursor.fetchall()
 
 
-def add_text(text, juz_number):
-    cursor.commit('UPDATE juz SET ')
+# def add_text(text, juz_number):
+#     cursor.commit('UPDATE juz SET ')
 
-    cursor.execute("INSERT INTO progress VALUES ('{}')".format(text))
-    connection.commit()
+    # cursor.execute("INSERT INTO progress VALUES ('{}')".format(text))
+    # connection.commit()
+
+def get_username(user_id) -> str:
+    cursor.execute("SELECT 1 FROM accounts WHERE user_id = '{}'".format(user_id))
+    return cursor[1]
 
 
 def clear_progress():
@@ -182,7 +192,7 @@ def get_hatym_number():
 
 def get_juz_data(juz_number):
     cursor.execute("SELECT * FROM juz WHERE juz_number={}".format(juz_number))
-    return cursor.fetchall()[0]
+    return cursor.fetchone()
 
 
 def get_not_finished_users():
@@ -215,5 +225,5 @@ def set_admin(user_id):
 
 def number_of_users() -> int:
     cursor.execute("SELECT COUNT(*) FROM accounts")
-    data = cursor.fetchall()
+    data = cursor.fetchone()
     return data[0]

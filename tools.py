@@ -100,3 +100,14 @@ def show_all_without_done_status():
 
 def check_super_admin(user_id, super_admin_id) -> bool:
     return str(user_id) == str(super_admin_id)
+
+
+def valid_number(juz_number) -> bool:
+    num = juz_number
+    if not num.isdigit():
+        return False
+
+    if 0 > num or num > 30:
+        return False
+
+    return True
