@@ -71,12 +71,30 @@ def show_all():
         if juz[3] == 'NULL_USER':
             user = ''
         if juz[2]:
-            my_list.append("◦ " + str(juz[0]) + ": " + user + ' ✅')
+            my_list.append(str(juz[0]) + ": " + user + ' ✅')
         else:
             if str(user) != "":
-                my_list.append("◦ " + str(juz[0]) + ": " + user + ' ⏳')
+                my_list.append(str(juz[0]) + ": " + user + ' ⏳')
             else:
-                my_list.append("◦ " + str(juz[0]) + ": " + user)
+                my_list.append(str(juz[0]) + ": " + user)
+    return show_list(my_list)
+
+
+def show_all_without_done_status():
+    db_juz = dbhelper.show_all()
+    sorted(db_juz)
+    my_list = []
+    for juz in db_juz:
+        user = juz[3]
+        if juz[3] == 'NULL_USER':
+            user = ''
+        if juz[2]:
+            continue
+        else:
+            if str(user) != "":
+                my_list.append(str(juz[0]) + ": " + user)
+            else:
+                my_list.append(str(juz[0]) + ": " + user)
     return show_list(my_list)
 
 

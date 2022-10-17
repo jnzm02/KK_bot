@@ -15,7 +15,8 @@ cursor = connection.cursor()
 
 
 def add_juz(juz_number, user):
-    cursor.execute("UPDATE juz SET user_id = '{}', username = '{}' WHERE juz_number = {}".format(user.id, user.username, juz_number))
+    cursor.execute("UPDATE juz SET user_id = '{}', username = '{}' WHERE juz_number = {}".format(user.id, user.username,
+                                                                                                 juz_number))
     connection.commit()
 
 
@@ -99,7 +100,7 @@ def add_new_user(user):
         if user.first_name is None or user.last_name is None:
             username = "Unknown User"
         else:
-            username = user.first_name+' '+user.last_name
+            username = user.first_name + ' ' + user.last_name
     cursor.execute(
         "INSERT INTO accounts VALUES ('{user_id}', '{username}', false) ON conflict (user_id) "
         "DO UPDATE SET username = '{username}'".format(user_id=user.id, username=username))
@@ -108,7 +109,8 @@ def add_new_user(user):
 
 def check_admin(user):
     cursor.execute("SELECT * FROM accounts WHERE user_id = '{}' and admin_status = true".format(user.id))
-    return len(cursor.fetchall()) > 0
+    row = cursor.fetchone()
+    return row is not None
 
 
 def clean_all_juz():
@@ -190,8 +192,8 @@ def get_not_finished_users():
     for user in user_data:
         if user[3] != 'NULL_USER':
             if user[3] != 'None':
-                if str('@'+user[3]) not in users_list:
-                    users_list.append('@'+user[3])
+                if str('@' + user[3]) not in users_list:
+                    users_list.append('@' + user[3])
 
     return users_list
 

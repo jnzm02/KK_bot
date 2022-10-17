@@ -464,6 +464,15 @@ def admins_list_command(message):
     bot.send_message(message.chat.id, tools.show_list(dbhelper.all_admins()))
 
 
+@bot.message_handler(commands=['status'])
+def status_command(message):
+    message_text = '#hatm' + str(dbhelper.get_hatym_number()) + '\n\n'
+    if deadline.check_deadline():
+        message_text += str(deadline.get_deadline()) + '\n\n'
+    message_text += tools.show_all()
+    bot.send_message(message.chat.id, message_text)
+
+
 @bot.message_handler(commands=['admin_status'])
 def check_if_admin_command(message):
     if message.chat.type != 'private' and not dbhelper.check_admin(message.from_user):
@@ -589,7 +598,7 @@ def message_handler(message):
         message_text = '#hatm' + str(dbhelper.get_hatym_number()) + '\n\n'
         if deadline.check_deadline():
             message_text += str(deadline.get_deadline()) + '\n\n'
-        message_text += tools.show_all()
+        message_text += tools.show_all_without_done_status()
         bot.send_message(message.chat.id, message_text)
 
     elif message.text == 'Show Deadline':
@@ -638,4 +647,4 @@ def message_handler(message):
                              reply_markup=keyboard.deadline_keyboard())
 
 
-bot.polling()
+bot.polling(none_stop=True)
