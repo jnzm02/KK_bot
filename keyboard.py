@@ -58,8 +58,9 @@ def extend_deadline_keyboard():
         InlineKeyboardButton('1 day', callback_data='deadline.extend_deadline.1'),
         InlineKeyboardButton('2 days', callback_data='deadline.extend_deadline.2'),
         InlineKeyboardButton('1 week', callback_data='deadline.extend_deadline.7'),
-        InlineKeyboardButton('2 weeks', callback_data='deadline.extend_deadline.14'),
+        InlineKeyboardButton('2 weeks', callback_data='deadline.extend_deadline.14')
     )
+
     return temp_keyboard
 
 

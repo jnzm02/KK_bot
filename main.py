@@ -18,23 +18,14 @@ bot = telebot.TeleBot(API_KEY)
 @bot.message_handler(commands=['start'])
 def start_command(message):
     dbhelper.add_new_user(message.from_user)
+    # dbhelper.upd_new_user(message.from_user.id, message.from_user.username)
     if message.chat.type == 'private':
         bot.send_message(message.chat.id, messages.start_command(), reply_markup=keyboard.start_keyboard())
 
 
-@bot.message_handler(commands=['send_evening_notification'])
-def send_evening_notification_command(message):
-    if not dbhelper.check_admin(message.from_user):
-        return
-    message_text = '#hatm' + str(dbhelper.get_hatym_number()) + '\n\n'
-    if deadline.check_deadline():
-        message_text += str(deadline.get_deadline()) + '\n\n'
-    bot.send_message(dbhelper.get_general_chat_id(), message_text + tools.show_all())
-
-
 @bot.message_handler(commands=['number_of_users'])
 def get_number_of_users(message):
-    if not dbhelper.check_admin(message.from_user):
+    if not dbhelper.check_admin(message.from_user.id):
         return
 
     bot.send_message(message.chat.id, "Current number of users is: " + str(dbhelper.number_of_users()))
@@ -42,7 +33,7 @@ def get_number_of_users(message):
 
 @bot.message_handler(commands=['completed_hatm'])
 def completed_hatm_command(message):
-    if not dbhelper.check_admin(message.from_user):
+    if not dbhelper.check_admin(message.from_user.id):
         return
 
     dbhelper.completed_hatym()
@@ -53,7 +44,7 @@ def completed_hatm_command(message):
 
 @bot.message_handler(commands=['clear_all'])
 def clean_all(message):
-    if not dbhelper.check_admin(message.from_user):
+    if not dbhelper.check_admin(message.from_user.id):
         return
 
     dbhelper.clean_all()
@@ -62,7 +53,7 @@ def clean_all(message):
 
 @bot.message_handler(commands=['free_juz'])
 def show_free_juz_command(message):
-    if message.chat.type != 'private' and not dbhelper.check_admin(message.from_user):
+    if message.chat.type != 'private' and not dbhelper.check_admin(message.from_user.id):
         return
 
     bot.send_message(message.chat.id, messages.free_juz_list(), parse_mode='Markdown')
@@ -70,7 +61,7 @@ def show_free_juz_command(message):
 
 @bot.message_handler(commands=['my_list'])
 def my_list_command(message):
-    if message.chat.type != 'private' and not dbhelper.check_admin(message.from_user):
+    if message.chat.type != 'private' and not dbhelper.check_admin(message.from_user.id):
         return
 
     my_list = dbhelper.generate_my_list(message.from_user)
@@ -82,7 +73,7 @@ def my_list_command(message):
 
 @bot.message_handler(commands=['set_deadline'])
 def set_deadline_command(message):
-    if not dbhelper.check_admin(message.from_user):
+    if not dbhelper.check_admin(message.from_user.id):
         return
 
     data = tools.extract_arg(message.text)
@@ -109,18 +100,17 @@ def set_deadline_command(message):
 
 @bot.message_handler(commands=['users_list'])
 def users_list_command(message):
-    if not dbhelper.check_admin(message.from_user):
+    if not dbhelper.check_admin(message.from_user.id):
         bot.send_message(message.chat.id, messages.not_allowed_to_call())
         return
 
-    bot.send_message(message.chat.id, "In progress...")
     message_text = tools.generate_users_list(dbhelper.users_list())
     bot.send_message(message.chat.id, message_text)
 
 
 @bot.message_handler(commands=['progress', 'show_progress'])
 def show_progress_command(message):
-    if not dbhelper.check_admin(message.from_user):
+    if not dbhelper.check_admin(message.from_user.id):
         bot.send_message(message.chat.id, messages.not_allowed_to_call())
         return
 
@@ -129,31 +119,14 @@ def show_progress_command(message):
         bot.send_message(message.chat.id, "The progress is empty")
         return
 
-    drop_text = ""
-    add_text = ""
-    done_text = ""
-    message_text = "Progress for this day:\n"
-    for text in progress:
-        if ' added ' in str(text):
-            add_text += '  ' + str(text[0]) + '\n'
-        elif ' dropped ' in str(text):
-            drop_text += '  ' + str(text[0]) + '\n'
-        elif ' done ' in str(text):
-            done_text += '  ' + str(text[0]) + '\n'
-
-    if len(add_text) >= 1:
-        message_text += " ADD:\n" + add_text
-    if len(drop_text) >= 1:
-        message_text += " DROP:\n" + drop_text
-    if len(done_text) >= 1:
-        message_text += " DONE:\n" + done_text
+    message_text = tools.generate_progress(progress)
 
     bot.send_message(message.chat.id, message_text)
 
 
 @bot.message_handler(commands=['send_progress'])
 def send_progress_command(message):
-    if not dbhelper.check_admin(message.from_user):
+    if not dbhelper.check_admin(message.from_user.id):
         bot.send_message(message.chat.id, messages.not_allowed_to_call())
         return
 
@@ -179,7 +152,7 @@ def clear_progress(message):
 
 @bot.message_handler(commands=['extend_deadline'])
 def extend_deadline_command(message):
-    if not dbhelper.check_admin(message.from_user):
+    if not dbhelper.check_admin(message.from_user.id):
         return
 
     data = tools.extract_arg(message.text)
@@ -203,7 +176,7 @@ def extend_deadline_command(message):
 
 @bot.message_handler(commands=['remove_deadline'])
 def remove_deadline_command(message):
-    if not dbhelper.check_admin(message.from_user):
+    if not dbhelper.check_admin(message.from_user.id):
         return
 
     dbhelper.set_default_deadline()
@@ -212,10 +185,9 @@ def remove_deadline_command(message):
 
 @bot.message_handler(commands=['deadline_past'])
 def deadline_past_command(message):
-    if not dbhelper.check_admin(message.from_user):
+    if not dbhelper.check_admin(message.from_user.id):
         return
 
-    bot.send_message(message.chat.id, "In progress...")
     users_list = dbhelper.take_late_people()
     if len(users_list) < 1:
         bot.send_message(message.chat.id, "Congrats!!! All readers ended their juzs!")
@@ -229,7 +201,7 @@ def deadline_past_command(message):
 
 @bot.message_handler(commands=['check_deadline'])
 def check_deadline_command(message):
-    if message.chat.type != 'private' and not dbhelper.check_admin(message.from_user):
+    if message.chat.type != 'private' and not dbhelper.check_admin(message.from_user.id):
         return
 
     if not deadline.check_deadline():
@@ -239,138 +211,18 @@ def check_deadline_command(message):
     bot.send_message(message.chat.id, "The deadline is: " + str(deadline.get_deadline()))
 
 
-@bot.message_handler(commands=['assign'])
-def assign_juz(message):
-    if not dbhelper.check_admin(message.from_user):
-        return
-
-    data = tools.extract_arg(message.text)
-
-    try:
-        user_id = data[0]
-        juz_number = data[1]
-        status = data[2]
-
-        if not tools.valid_number(juz_number):
-            return
-
-        username = dbhelper.get_username(user_id)
-
-        if status == 'add':
-            dbhelper.add_juz_with_username(juz_number, user_id, username)
-
-    except TypeError:
-        bot.send_message(message.chat.id, "Error!")
-
-
-#
-# @bot.message_handler(commands=['add'])
-# def add_to_mylist(message):
-#     if message.chat.type != 'private' and not dbhelper.check_admin(message.from_user):
-#         return
-#
-#     data = tools.extract_arg(message.text)
-#
-#     if not tools.check_has_arg(data):
-#         bot.send_message(message.chat.id, "Can not add an empty argument. Please enter a number "
-#                                           "between [1, 30] after command")
-#         return
-#
-#     juz_number = data[0]
-#
-#     if not juz_number.isdigit():
-#         bot.send_message(message.chat.id, "Please write a number, you sent wrong parameters. Please enter a number "
-#                                           "between [1, 30] after command")
-#         return
-#
-#     juz_number = int(juz_number)
-#
-#     if juz_number > 30 or juz_number <= 0:
-#         bot.send_message(message.chat.id, "No juz found! May be you sent wrong parameters. Please enter a number "
-#                                           "between [1, 30] after command")
-#         return
-#
-#     juz_data = dbhelper.get_juz_data(juz_number)
-#
-#     if juz.check_read(juz_data):
-#         bot.send_message(message.chat.id, messages.juz_is_read())
-#         return
-#
-#     if juz.check_mine(juz_data, message.from_user):
-#         bot.send_message(message.chat.id, messages.warning_add_my_juz())
-#         return
-#
-#     if not juz.check_free(juz_data):
-#         bot.send_message(message.chat.id, messages.warning_add_others_juz())
-#         return
-#
-#     dbhelper.add_juz(juz_number, message.from_user)
-#     bot.send_message(message.chat.id, messages.juz_successfully_added_to_your_list())
-
-
 @bot.message_handler(commands=['all'])
 def show_all_juz(message):
-    if message.chat.type != 'private' and not dbhelper.check_admin(message.from_user):
+    if message.chat.type != 'private' and not dbhelper.check_admin(message.from_user.id):
         return
 
     message_text = tools.show_all()
     bot.send_message(message.chat.id, message_text)
 
 
-# @bot.message_handler(commands=['done'])
-# def done_reading_juz(message):
-#     if message.chat.type != 'private' and not dbhelper.check_admin(message.from_user):
-#         return
-#
-#     data = tools.extract_arg(message.text)
-#
-#     if not tools.check_has_arg(data):
-#         bot.send_message(message.chat.id, "Can not assign as done. Please enter a number "
-#                                           "between [1, 30] after the command")
-#         return
-#
-#     juz_number = data[0]
-#
-#     if not juz_number.isdigit():
-#         bot.send_message(message.chat.id, "Please write a number, you sent wrong parameters. Please enter a number "
-#                                           "between [1, 30] after the command")
-#         return
-#
-#     juz_number = int(juz_number)
-#     juz_data = dbhelper.get_juz_data(juz_number)
-#     if juz_number > 30 or juz_number <= 0:
-#         bot.send_message(message.chat.id, "No juz found!")
-#         return
-#
-#     if juz.check_read(juz_data):
-#         bot.send_message(message.chat.id, messages.juz_is_read())
-#         return
-#
-#     if not juz.check_mine(juz_data, message.from_user):
-#         bot.send_message(message.chat.id, messages.juz_is_not_yours())
-#         return
-#
-#     else:
-#         dbhelper.done_reading(juz_number)
-#         bot.send_message(message.chat.id, messages.done_reading())
-
-
-@bot.message_handler(commands=['warn_everyone'])
-def warn_everyone_command(message):
-    if str(SUPER_ADMIN_ID) != str(message.from_user.id):
-        return
-
-    message_text = tools.concatenate_arg(tools.extract_arg(message.text))
-    if message_text == " ":
-        bot.send_message(message.chat.id, "List is empty!")
-        return
-    user_id_list = dbhelper.user_id_list()
-    bot.send_message(message.chat.id, str(user_id_list))
-
-
 @bot.message_handler(commands=['warn_not_finished'])
 def warn_not_finished(message):
-    if not dbhelper.check_admin(message.from_user):
+    if not dbhelper.check_admin(message.from_user.id):
         return
 
     data = tools.extract_arg(message.text)
@@ -387,48 +239,9 @@ def warn_not_finished(message):
     bot.send_message(dbhelper.get_general_chat_id(), message_text)
 
 
-# @bot.message_handler(commands=["drop"])
-# def drop_user(message):
-#     if message.chat.type != 'private' and not dbhelper.check_admin(message.from_user):
-#         return
-#
-#     data = tools.extract_arg(message.text)
-#
-#     if not tools.check_has_arg(data):
-#         bot.send_message(message.chat.id, "Can not drop. Please enter a number between [1, 30] after command")
-#         return
-#
-#     juz_number = data[0]
-#
-#     if not juz_number.isdigit():
-#         bot.send_message(message.chat.id, "Please write a number, you sent wrong parameters. Please enter a number "
-#                                           "between [1, 30] after command")
-#         return
-#
-#     juz_number = int(juz_number)
-#     juz_data = dbhelper.get_juz_data(juz_number)
-#
-#     if juz_number > 30 or juz_number <= 0:
-#         bot.send_message(message.chat.id, "No juz found!")
-#         return
-#
-#     if not juz.check_mine(juz_data, message.from_user):
-#         bot.send_message(message.chat.id, messages.warning_drop_others_juz())
-#         return
-#
-#     if juz.check_read(juz_data):
-#         bot.send_message(message.chat.id, messages.warning_drop_read_juz())
-#         return
-#
-#     dbhelper.drop_user(juz_number)
-#
-#     bot.send_message(SUPER_ADMIN_ID, str(message.from_user.username) + ' has dropped ' + str(juz_number) + ' juz')
-#     bot.send_message(message.chat.id, messages.success_drop_juz())
-
-
 @bot.message_handler(commands=['super_admin_status'])
 def super_admin_status_command(message):
-    if message.chat.type != 'private' and not dbhelper.check_admin(message.from_user):
+    if message.chat.type != 'private':
         return
 
     if tools.check_super_admin(message.from_user.id, SUPER_ADMIN_ID):
@@ -439,7 +252,7 @@ def super_admin_status_command(message):
 
 @bot.message_handler(commands=['set_general_chat'])
 def set_general_chat(message):
-    if not dbhelper.check_admin(message.from_user):
+    if not dbhelper.check_admin(message.from_user.id):
         return
 
     if message.chat.type != 'group':
@@ -458,11 +271,13 @@ def check_chat_command(message):
     if message.chat.type != 'group':
         return
 
-    if not dbhelper.check_admin(message.from_user):
-        bot.send_message(message.chat.id, messages.not_allowed_to_call())
+    if not dbhelper.check_admin(message.from_user.id):
         return
 
-    bot.send_message(message.chat.id, "This is a general chat")
+    if dbhelper.get_general_chat_id() == message.chat.id:
+        bot.send_message(message.chat.id, "This is a general chat")
+    else:
+        bot.send_message(message.chat.id, "This is not a general chat")
 
 
 @bot.message_handler(commands=['set_admin'])
@@ -471,7 +286,6 @@ def set_admin_command(message):
         bot.send_message(message.chat.id, messages.not_allowed_to_call())
         return
 
-    bot.send_message(message.chat.id, "In Progress...")
     user_id = tools.extract_arg(message.text)
     dbhelper.set_admin(user_id[0])
     bot.send_message(message.chat.id, "The user was added to the admins list you can check it using command '/admins'")
@@ -479,11 +293,7 @@ def set_admin_command(message):
 
 @bot.message_handler(commands=['admins'])
 def admins_list_command(message):
-    if message.chat.type != 'private' and not dbhelper.check_admin(message.from_user):
-        return
-
-    if not str(message.from_user.id) == str(SUPER_ADMIN_ID):
-        bot.send_message(message.chat.id, "You are not Super Admin")
+    if not dbhelper.check_admin(message.from_user.id):
         return
 
     bot.send_message(message.chat.id, tools.show_list(dbhelper.all_admins()))
@@ -491,6 +301,8 @@ def admins_list_command(message):
 
 @bot.message_handler(commands=['status'])
 def status_command(message):
+    if message.chat.type != 'private' and not dbhelper.check_admin(message.from_user.id):
+        return
     message_text = '#hatm' + str(dbhelper.get_hatym_number()) + '\n\n'
     if deadline.check_deadline():
         message_text += str(deadline.get_deadline()) + '\n\n'
@@ -500,10 +312,10 @@ def status_command(message):
 
 @bot.message_handler(commands=['admin_status'])
 def check_if_admin_command(message):
-    if message.chat.type != 'private' and not dbhelper.check_admin(message.from_user):
+    if message.chat.type != 'private':
         return
 
-    if dbhelper.check_admin(message.from_user):
+    if dbhelper.check_admin(message.from_user.id):
         bot.send_message(message.chat.id, "You are admin")
     else:
         bot.send_message(message.chat.id, "You are not admin")
@@ -579,7 +391,7 @@ def callback_query(call):
 
 @bot.message_handler(func=lambda message: True)
 def message_handler(message):
-    if not message.chat.type == 'private' and not dbhelper.check_admin(message.from_user):
+    if not message.chat.type == 'private' and not dbhelper.check_admin(message.from_user.id):
         return
 
     # Buttons to Buttons
@@ -633,7 +445,7 @@ def message_handler(message):
             bot.send_message(message.chat.id, deadline.get_deadline(), reply_markup=keyboard.deadline_keyboard())
 
     elif message.text == 'Extend Deadline':
-        if not dbhelper.check_admin(message.from_user):
+        if not dbhelper.check_admin(message.from_user.id):
             if message.chat.type == 'private':
                 bot.send_message(message.chat.id, messages.not_allowed_to_call())
             return
@@ -648,7 +460,7 @@ def message_handler(message):
         start_command(message)
 
     elif message.text == 'Set Deadline':
-        if not dbhelper.check_admin(message.from_user):
+        if not dbhelper.check_admin(message.from_user.id):
             if message.chat.type == 'private':
                 bot.send_message(message.chat.id, messages.not_allowed_to_call())
             return
@@ -659,7 +471,7 @@ def message_handler(message):
         bot.send_message(message.chat.id, message_text)
 
     elif message.text == 'Remove Deadline':
-        if not dbhelper.check_admin(message.from_user):
+        if not dbhelper.check_admin(message.from_user.id):
             if message.chat.type == 'private':
                 bot.send_message(message.chat.id, messages.not_allowed_to_call())
             return

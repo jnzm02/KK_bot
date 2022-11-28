@@ -108,13 +108,23 @@ def add_new_user(user):
         else:
             username = user.first_name + ' ' + user.last_name
     cursor.execute(
-        "INSERT INTO accounts VALUES ('{user_id}', '{username}', false, 0) ON conflict (user_id) "
-        "DO UPDATE SET username = '{username}'".format(user_id=user.id, username=username))
+        "INSERT INTO accounts VALUES ('{}', '{}', false, 0) ON conflict (user_id) "
+        "DO UPDATE SET username = '{}'".format(user.id, username, username)
+    )
     connection.commit()
 
 
-def check_admin(user):
-    cursor.execute("SELECT * FROM accounts WHERE user_id = '{}' and admin_status = true".format(user.id))
+def upd_new_user(user_id, username):
+    if str(username) == 'None':
+        username = "Unknown User"
+    cursor.execute(
+        "INSERT INTO accounts VALUES ('{}', '{}', false, 0) ON conflict(user_id) "
+        "DO UPDATE SET username = '{}'".format(user_id, username, username)
+    )
+
+
+def check_admin(user_id):
+    cursor.execute("SELECT * FROM accounts WHERE user_id = '{}' and admin_status = true".format(user_id))
     row = cursor.fetchone()
     return row is not None
 
@@ -209,7 +219,7 @@ def get_not_finished_users():
 
 
 def user_id_list() -> list:
-    cursor.execute("SELECT * FROM accounts WHERE username != 'justadlet'")
+    cursor.execute("SELECT * FROM accounts")
     data = cursor.fetchall()
     users_list = []
     for user in data:

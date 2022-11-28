@@ -111,3 +111,26 @@ def valid_number(juz_number) -> bool:
         return False
 
     return True
+
+
+def generate_progress(progress):
+    drop_text = ""
+    add_text = ""
+    done_text = ""
+    message_text = "Progress for this day:\n"
+    for text in progress:
+        if ' added ' in str(text):
+            add_text += '  ' + str(text[0]) + '\n'
+        elif ' dropped ' in str(text):
+            drop_text += '  ' + str(text[0]) + '\n'
+        elif ' done ' in str(text):
+            done_text += '  ' + str(text[0]) + '\n'
+
+    if len(add_text) >= 1:
+        message_text += " ADD:\n" + add_text
+    if len(drop_text) >= 1:
+        message_text += " DROP:\n" + drop_text
+    if len(done_text) >= 1:
+        message_text += " DONE:\n" + done_text
+
+    return message_text
