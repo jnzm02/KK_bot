@@ -11,8 +11,10 @@ import messages
 import juz
 
 API_KEY = config('API_KEY')
-SUPER_ADMIN_ID = int(config('SUPER_ADMIN_ID'))
 bot = telebot.TeleBot(API_KEY)
+
+
+SUPER_ADMIN_ID = int(config('SUPER_ADMIN_ID'))
 
 
 @bot.message_handler(commands=['start'])

@@ -15,8 +15,7 @@ cursor = connection.cursor()
 
 
 def add_juz(juz_number, user):
-    cursor.execute("UPDATE juz SET user_id = '{}', username = '{}' WHERE juz_number = {}".format(user.id, user.username,
-                                                                                                 juz_number))
+    cursor.execute("UPDATE juz SET user_id = '{}', username = '{}' WHERE juz_number = {}".format(user.id, user.username, juz_number))
     connection.commit()
 
 
@@ -27,7 +26,7 @@ def add_juz_with_username(juz_number, user_id, username):
 
 
 def remove_admin(user_id):
-    cursor.execute("DELETE FROM admins WHERE user_id = {}".format(user_id))
+    cursor.execute("DELETE FROM admins WHERE user_id = '{}'".format(user_id))
     connection.commit()
 
 
